@@ -291,9 +291,11 @@ make_plot(expt_list, ds3, var_list, abs_diff=abs_diff, rel_diff=rel_diff, y2y_di
 
 
 # %% GRAINC_TO_FOOD_ANN
+abs_diff = False
 rel_diff = False
+y2y_diff = False
 
-make_plot(expt_list, ds1, "GRAINC_TO_FOOD_ANN", rel_diff=rel_diff, cropland_only=False)
+make_plot(expt_list, ds1, "GRAINC_TO_FOOD_ANN", abs_diff=abs_diff, rel_diff=rel_diff, y2y_diff=y2y_diff, cropland_only=False)
 
 
 
