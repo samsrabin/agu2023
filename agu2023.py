@@ -52,7 +52,7 @@ def get_only_cropland2(dse, wtg):
     return dse
 
 # Calculate total value (instead of per-area)
-def get_total_value(dse, da):
+def get_total_value(dse, da, cropland_only):
     dse["tmp"] = da
     da = utils.grid_one_variable(dse, "tmp")
     old_units = da.attrs["units"]
@@ -194,7 +194,7 @@ def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_on
                 da = ds[e][var]
             
             # Calculate total value (instead of per-area)
-            da = get_total_value(ds[e], da)
+            da = get_total_value(ds[e], da, cropland_only)
             
             # Calculate global sum
             da = da.sum(dim=["lat","lon"], keep_attrs=True)
