@@ -99,23 +99,26 @@ def get_y2y_chg(v, da):
     da.name = f"{v} y2y flux"
     return da
 
-def get_wtg_inds(cropland_only, var):
+def get_wtg_inds(cropland_only, var, ds):
     if cropland_only and (var == "GRAINC_TO_FOOD_ANN" or "CROPPROD" in var):
         raise RuntimeError(f"{var} can't be used with cropland_only=True")
     
-    if var == "GRAINC_TO_FOOD_ANN":
+    dims = ds[var].dims
+    if "pft" in dims:
         wtg = "pfts1d_wtgcell"
         inds = "pfts1d_gi"
-    elif "CROPPROD" in var:
+    elif "gridcell" in dims:
         wtg = None
         inds = None
-    else:
+    elif "column" in dims:
         if cropland_only:
             wtg = "cols1d_wtlunit"
             inds = "cols1d_gi"
         else:
             wtg = "cols1d_wtgcell"
             inds = "cols1d_gi"
+    else:
+        raise RuntimeError(f"Unknown wtg/inds for dims {dims}")
     return wtg,inds
 
 
@@ -180,7 +183,7 @@ def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_on
         raise RuntimeError("rel_diff and abs_diff are mutually exclusive")
 
     for v, var in enumerate(var_list):
-        wtg, inds = get_wtg_inds(cropland_only, var)
+        wtg, inds = get_wtg_inds(cropland_only, var, ds[0])
                 
         das = []
         plt.figure()
