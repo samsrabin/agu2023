@@ -204,6 +204,10 @@ def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_on
             # Convert units
             da = convert_units(ds[e], da)
             
+            # Ignore first time step, which seems to be garbage for NBP etc.
+            Ntime = ds[e].dims["time"]
+            da = da.isel(time=slice(1, Ntime))
+            
             # Get year-to-year change (i.e., net flux)
             if y2y_diff:
                 da = get_y2y_chg(v, da)
