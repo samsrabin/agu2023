@@ -100,14 +100,13 @@ def get_y2y_chg(v, da):
     return da
 
 def get_wtg_inds(cropland_only, var):
+    if cropland_only and (var == "GRAINC_TO_FOOD_ANN" or "CROPPROD" in var):
+        raise RuntimeError(f"{var} can't be used with cropland_only=True")
+    
     if var == "GRAINC_TO_FOOD_ANN":
-        if cropland_only:
-            raise RuntimeError("GRAINC_TO_FOOD_ANN can't be used with cropland_only=True")
         wtg = "pfts1d_wtgcell"
         inds = "pfts1d_gi"
     elif "CROPPROD" in var:
-        if cropland_only:
-            raise RuntimeError(f"{var} can't be used with cropland_only=True")
         wtg = None
         inds = None
     else:
