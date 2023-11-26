@@ -172,7 +172,7 @@ def get_weighted(ds, cropland_only, v, var, wtg, inds, e):
     return da
 
 
-def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_only):
+def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_only, rolling=None):
     
     if isinstance(var_list, str):
         var_list = [var_list]
@@ -207,6 +207,10 @@ def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_on
             # Ignore first time step, which seems to be garbage for NBP etc.
             Ntime = ds[e].dims["time"]
             da = da.isel(time=slice(1, Ntime))
+            
+            # Smooth
+            if rolling is not None:
+                da = da.rolling(time=rolling, center=True).mean()
             
             # Get year-to-year change (i.e., net flux)
             if y2y_diff:
@@ -281,10 +285,10 @@ abs_diff = False
 rel_diff = False
 y2y_diff = False
 cropland_only = False
-# var_list = ["SOILC_HR", "NBP", "NEE", "NEP"]
+# var_list = ["SOILC_HR", "NEP", "NEE", "NBP"]
 var_list = ["NBP"]
 
-make_plot(expt_list, ds0, var_list, abs_diff=abs_diff, rel_diff=rel_diff, y2y_diff=y2y_diff, cropland_only=cropland_only)
+make_plot(expt_list, ds0, var_list, abs_diff=abs_diff, rel_diff=rel_diff, y2y_diff=y2y_diff, cropland_only=cropland_only, rolling=10)
 
 
 # %% h2 files
