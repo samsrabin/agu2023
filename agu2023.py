@@ -257,10 +257,12 @@ def get_file(h):
         raise RuntimeError(f"{len(file)} matches found")
     return file[0]
 
+ds0 = []
 ds1 = []
 ds2 = []
 ds3 = []
 for e, expt_name in enumerate(expt_list):
+    ds0.append(xr.open_dataset(get_file(0)))
     ds1.append(xr.open_dataset(get_file(1)))
     ds2.append(xr.open_dataset(get_file(2)))
     ds3.append(xr.open_dataset(get_file(3)))
