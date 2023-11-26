@@ -100,7 +100,7 @@ def get_y2y_chg(v, da):
     return da
 
 def get_wtg_inds(cropland_only, var, ds):
-    if cropland_only and (var == "GRAINC_TO_FOOD_ANN" or "CROPPROD" in var):
+    if cropland_only and (var == "GRAINC_TO_FOOD_ANN" or "gridcell" in ds[var].dims):
         raise RuntimeError(f"{var} can't be used with cropland_only=True")
     
     dims = ds[var].dims
