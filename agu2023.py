@@ -255,7 +255,9 @@ expt_list = ["Toff_Roff", "Thi_Rhi", "Toff_Roff_fromHi", "Thi_Rhi_fromOff", "Thi
 
 def get_file(h):
     file = glob.glob(f"*{expt_name}.clm2.h{h}s.*")
-    if len(file) != 1:
+    if len(file) > 1:
+        raise RuntimeError(f"{len(file)} matches found: {file}")
+    elif len(file) < 1:
         raise RuntimeError(f"{len(file)} matches found")
     return file[0]
 
