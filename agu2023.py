@@ -253,7 +253,7 @@ def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_on
 
 # %% Import
 
-os.chdir("/Users/Shared/CESM_runs/agu2023_10x15v3")
+os.chdir("/Users/Shared/CESM_runs/agu2023_10x15v3.3")
 
 expt_list = ["Toff_Roff", "Thi_Rhi", "Toff_Roff_fromHi", "Thi_Rhi_fromOff", "Thi_Roff_fromOff", "Toff_Rhi_fromHi"]
 # expt_list = ["Toff_Roff", "Thi_Rhi_fromOff"]
