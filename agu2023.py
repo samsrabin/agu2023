@@ -270,6 +270,17 @@ for e, expt_name in enumerate(expt_list):
     ds3.append(xr.open_dataset(get_file(3)))
 
 
+# %% h0 files
+abs_diff = False
+rel_diff = False
+y2y_diff = False
+cropland_only = False
+# var_list = ["SOILC_HR", "NBP", "NEE", "NEP"]
+var_list = ["NBP"]
+
+make_plot(expt_list, ds0, var_list, abs_diff=abs_diff, rel_diff=rel_diff, y2y_diff=y2y_diff, cropland_only=cropland_only)
+
+
 # %% h2 files
 abs_diff = False
 rel_diff = False
