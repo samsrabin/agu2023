@@ -255,11 +255,14 @@ def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_on
 
 os.chdir("/Users/Shared/CESM_runs/agu2023_10x15v3.3")
 
-expt_list = ["Toff_Roff", "Thi_Rhi", "Toff_Roff_fromHi", "Thi_Rhi_fromOff", "Thi_Roff_fromOff", "Toff_Rhi_fromHi"]
+# expt_list = ["Toff_Roff", "Thi_Rhi", "Toff_Roff_fromHi", "Thi_Rhi_fromOff", "Thi_Roff_fromOff", "Toff_Rhi_fromHi"]
 # expt_list = ["Toff_Roff", "Thi_Rhi_fromOff"]
 # expt_list = ["Thi_Rhi", "Toff_Roff_fromHi"]
 # expt_list = ["Toff_Roff", "Thi_Rhi_fromOff", "Toff_Rhi_fromOff"]
 # expt_list = ["Thi_Rhi", "Toff_Roff_fromHi", "Thi_Roff_fromHi"]
+# expt_list = ["Toff_Roff", "Thi_Rhi_fromOff", "Thi_Roff_fromOff"]
+# expt_list = ["Thi_Rhi", "Toff_Roff_fromHi", "Toff_Rhi_fromHi"]
+expt_list = ["Toff_Roff", "Thi_Rhi", "Thi_Rhi_fromOff", "Thi_Roff_fromOff"]
 
 def get_file(h):
     file = glob.glob(f"*{expt_name}.clm2.h{h}s.*")
@@ -285,10 +288,11 @@ abs_diff = False
 rel_diff = False
 y2y_diff = False
 cropland_only = False
+rolling = None
 # var_list = ["SOILC_HR", "NEP", "NEE", "NBP"]
 var_list = ["NBP"]
 
-make_plot(expt_list, ds0, var_list, abs_diff=abs_diff, rel_diff=rel_diff, y2y_diff=y2y_diff, cropland_only=cropland_only, rolling=10)
+make_plot(expt_list, ds0, var_list, abs_diff=abs_diff, rel_diff=rel_diff, y2y_diff=y2y_diff, cropland_only=cropland_only, rolling=rolling)
 
 
 # %% h2 files
