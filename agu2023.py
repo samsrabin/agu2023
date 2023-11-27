@@ -247,8 +247,19 @@ def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_on
                 da.plot(color=colors[e])
             plt.legend(expt_list[1:])
         else:
-            for e in np.arange(len(das)):
-                das[e].plot()
+            for e, expt_name in enumerate(expt_list):
+                da = das[e].copy()
+                if "from" in expt_name:
+                    if "fromOff" in expt_name:
+                        hist_expt_name = "Toff_Roff"
+                    elif "fromHi" in expt_name:
+                        hist_expt_name = "Thi_Rhi"
+                    else:
+                        raise RuntimeError(f"Unrecognized \"from\" in expt_name: {expt_name}")
+                    da_hist = das[expt_list.index(hist_expt_name)].copy()
+                    da_hist = da_hist.sel(time=slice("2014-01-01", "2014-12-31"))
+                    da = xr.concat((da_hist, da), dim="time")
+                da.plot()
             plt.legend(expt_list)
         if cropland_only:
             plt.title(var + " (cropland only)")
