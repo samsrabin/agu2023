@@ -181,6 +181,10 @@ def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_on
         raise RuntimeError("rel_diff and y2y_diff are mutually exclusive")
     if rel_diff and abs_diff:
         raise RuntimeError("rel_diff and abs_diff are mutually exclusive")
+    
+    # Get line colors to cycle through
+    prop_cycle = plt.rcParams['axes.prop_cycle']
+    colors = prop_cycle.by_key()['color']
 
     for v, var in enumerate(var_list):
         wtg, inds = get_wtg_inds(cropland_only, var, ds[0])
@@ -229,7 +233,7 @@ def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_on
                     da = das[e] / das[0]
                 elif abs_diff:
                     da = das[e] - das[0]
-                da.plot()
+                da.plot(color=colors[e])
             plt.legend(expt_list[1:])
         else:
             plt.legend(expt_list)
