@@ -187,6 +187,16 @@ def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_on
     colors = prop_cycle.by_key()['color']
 
     for v, var in enumerate(var_list):
+        
+        # Process modifiers
+        do_cumsum = False
+        while "." in var:
+            if ".CUMSUM" in var:
+                do_cumsum = True
+                var = var.replace(".CUMSUM", "")
+            else:
+                raise RuntimeError(f"Unexpected modifier(s) in var: {var}")
+        
         wtg, inds = get_wtg_inds(cropland_only, var, ds[0])
                 
         das = []
@@ -211,6 +221,10 @@ def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_on
             # Ignore first time step, which seems to be garbage for NBP etc.
             Ntime = ds[e].dims["time"]
             da = da.isel(time=slice(1, Ntime))
+            
+            # Apply modifiers, if any
+            if do_cumsum:
+                da = da.cumsum(dim="time", keep_attrs=True)
             
             # Smooth
             if rolling is not None:
@@ -294,7 +308,7 @@ y2y_diff = False
 cropland_only = False
 rolling = None
 # var_list = ["SOILC_HR", "NEP", "NEE", "NBP"]
-var_list = ["NBP"]
+var_list = ["NBP.CUMSUM"]
 
 make_plot(expt_list, ds0, var_list, abs_diff=abs_diff, rel_diff=rel_diff, y2y_diff=y2y_diff, cropland_only=cropland_only, rolling=rolling)
 
