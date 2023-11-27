@@ -236,10 +236,7 @@ def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_on
             
             # Plot (or save for plotting later)
             units = da.attrs["units"]
-            if rel_diff or abs_diff:
                 das.append(da)
-            else:
-                da.plot()
         
         if rel_diff or abs_diff:
             for e in np.arange(1, len(das)):
@@ -250,6 +247,8 @@ def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_on
                 da.plot(color=colors[e])
             plt.legend(expt_list[1:])
         else:
+            for e in np.arange(len(das)):
+                das[e].plot()
             plt.legend(expt_list)
         if cropland_only:
             plt.title(var + " (cropland only)")
