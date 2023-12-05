@@ -23,7 +23,9 @@ os.chdir(this_dir)
 
 # %% Define
 
-def get_das(expt_list, var):
+def get_das(expt_list, var, cropland_only):
+    if cropland_only:
+        var += "_croponly"
     pattern_yearrange = "[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]"
     das = []
     for expt in expt_list:
@@ -66,7 +68,7 @@ legendsize = 14
 axlabelsize = 18
 titlesize = 24
 
-das = get_das(expt_list, var)
+das = get_das(expt_list, var, cropland_only)
 agu23.make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das,
                 title=title,
                 figsize=figsize, axlabelsize=axlabelsize, titlesize=titlesize, ticklabelsize=ticklabelsize,
