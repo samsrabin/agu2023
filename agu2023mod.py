@@ -234,7 +234,7 @@ def process_and_make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff,
         make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das)
 
 
-def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das_in, figsize=None, axlabelsize=None, titlesize=None, ticklabelsize=None):
+def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das_in, figsize=None, axlabelsize=None, titlesize=None, ticklabelsize=None, legendsize=None):
     # Ensure all DataArrays have the same units
     units = das_in[0].attrs["units"]
     for d, da in enumerate(das_in):
@@ -274,7 +274,7 @@ def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropl
             elif abs_diff:
                 da = das[e] - das[0]
             da.plot(color=colors[e])
-        plt.legend(expt_list[1:])
+        legend_items = expt_list[1:]
     else:
         for e, expt_name in enumerate(expt_list):
             da = das[e].copy()
@@ -289,7 +289,9 @@ def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropl
                 da_hist = da_hist.sel(time=slice("2014-01-01", "2014-12-31"))
                 da = xr.concat((da_hist, da), dim="time")
             da.plot()
-        plt.legend(expt_list)
+        legend_items = expt_list
+
+    plt.legend(legend_items, fontsize=legendsize)
 
     # Set title
     title = var
