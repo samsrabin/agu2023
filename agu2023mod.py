@@ -204,7 +204,7 @@ def get_weighted(dse, cropland_only, var, wtg, inds):
 
 
 
-def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_only, rolling=None):
+def process_and_make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_only, rolling=None):
 
     if isinstance(var_list, str):
         var_list = [var_list]
