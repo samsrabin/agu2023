@@ -88,12 +88,3 @@ da = da.rename({"landunit": "gridcell"})
 ds2[0]["tmp"] = da
 da = utils.grid_one_variable(ds2[0], "tmp")
 da.plot()
-
-
-# %%
-
-a = xr.open_dataset("/Users/Shared/CESM_runs/agu2023_10x15/agu2023_10x15_fut_Toff_Roff_fromHi.clm2.h1.2095-01-01-00000.nc")
-b = xr.open_dataset("/Users/Shared/CESM_runs/agu2023_10x15/agu2023_10x15_fut_Toff_Roff_fromHi.clm2.h1.2096-01-01-00000.nc")
-
-thisVar = "land1d_wtgcell"
-np.array_equal(a[thisVar].values, b[thisVar].values, equal_nan=True)
