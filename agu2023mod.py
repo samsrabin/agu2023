@@ -234,6 +234,7 @@ def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_on
         for e, expt_name in enumerate(expt_list):
             
             da = get_timeseries_da(ds[e], y2y_diff, cropland_only, rolling, var, do_cumsum, wtg, inds)
+            da = modify_timeseries_da(da, do_cumsum, rolling, y2y_diff)
             
             # Plot (or save for plotting later)
             units = da.attrs["units"]
@@ -299,11 +300,14 @@ def get_timeseries_da(dse, y2y_diff, cropland_only, rolling, var, do_cumsum, wtg
     # Ignore first time step, which seems to be garbage for NBP etc.
     Ntime = dse.dims["time"]
     da = da.isel(time=slice(1, Ntime))
-            
-    # Apply modifiers, if any
+
+    return da
+
+
+def modify_timeseries_da(da, do_cumsum, rolling, y2y_diff):
     if do_cumsum:
         da = da.cumsum(dim="time", keep_attrs=True)
-            
+
     # Smooth
     if rolling is not None:
         da = da.rolling(time=rolling, center=True).mean()
@@ -311,4 +315,5 @@ def get_timeseries_da(dse, y2y_diff, cropland_only, rolling, var, do_cumsum, wtg
     # Get year-to-year change (i.e., net flux)
     if y2y_diff:
         da = get_y2y_chg(v, da)
+
     return da
