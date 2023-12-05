@@ -214,10 +214,6 @@ def process_and_make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff,
     if rel_diff and abs_diff:
         raise RuntimeError("rel_diff and abs_diff are mutually exclusive")
 
-    # Get line colors to cycle through
-    prop_cycle = plt.rcParams['axes.prop_cycle']
-    colors = prop_cycle.by_key()['color']
-
     for _, var in enumerate(var_list):
 
         # Process modifiers
@@ -232,55 +228,69 @@ def process_and_make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff,
         wtg, inds = get_wtg_inds(cropland_only, var, ds[0])
 
         das = []
-        plt.figure()
+        for dse in ds:
+            das.append(get_timeseries_da(dse, cropland_only, var, wtg, inds))
+
+        make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das)
+
+
+def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das):
+    # Ensure all DataArrays have the same units
+    units = das[0].attrs["units"]
+    for d, da in enumerate(das):
+        if d == 0:
+            continue
+        if units != da.attrs["units"]:
+            raise RuntimeError(f"Units mismatch: {units} vs. {da.attrs['units']}")
+
+    # Modify DataArrays, if needed
+    for d, da in enumerate(das):
+        das[d] = modify_timeseries_da(da, do_cumsum, rolling, y2y_diff)
+
+    # Get line colors to cycle through
+    prop_cycle = plt.rcParams['axes.prop_cycle']
+    colors = prop_cycle.by_key()['color']
+
+    plt.figure()
+    if rel_diff or abs_diff:
+        for e in np.arange(1, len(das)):
+            if rel_diff:
+                da = das[e] / das[0]
+            elif abs_diff:
+                da = das[e] - das[0]
+            da.plot(color=colors[e])
+        plt.legend(expt_list[1:])
+    else:
         for e, expt_name in enumerate(expt_list):
-
-            da = get_timeseries_da(ds[e], cropland_only, var, wtg, inds)
-            da = modify_timeseries_da(da, do_cumsum, rolling, y2y_diff)
-
-            # Plot (or save for plotting later)
-            units = da.attrs["units"]
-            das.append(da)
-
-        if rel_diff or abs_diff:
-            for e in np.arange(1, len(das)):
-                if rel_diff:
-                    da = das[e] / das[0]
-                elif abs_diff:
-                    da = das[e] - das[0]
-                da.plot(color=colors[e])
-            plt.legend(expt_list[1:])
-        else:
-            for e, expt_name in enumerate(expt_list):
-                da = das[e].copy()
-                if "from" in expt_name:
-                    if "fromOff" in expt_name:
-                        hist_expt_name = "Toff_Roff"
-                    elif "fromHi" in expt_name:
-                        hist_expt_name = "Thi_Rhi"
-                    else:
-                        raise RuntimeError(f"Unrecognized \"from\" in expt_name: {expt_name}")
-                    da_hist = das[expt_list.index(hist_expt_name)].copy()
-                    da_hist = da_hist.sel(time=slice("2014-01-01", "2014-12-31"))
-                    da = xr.concat((da_hist, da), dim="time")
-                da.plot()
-            plt.legend(expt_list)
-        if cropland_only:
-            plt.title(var + " (cropland only)")
-        else:
-            plt.title(var)
-        if rel_diff:
-            plt.axhline(y=1, color="k", linestyle="--")
-            plt.ylabel(f"Relative to {expt_list[0]}")
-        elif y2y_diff or abs_diff:
-            plt.axhline(y=0, color="k", linestyle="--")
-            if abs_diff:
-                plt.ylabel(f"Relative to {expt_list[0]} ({units})")
-            else:
-                plt.ylabel(units)
+            da = das[e].copy()
+            if "from" in expt_name:
+                if "fromOff" in expt_name:
+                    hist_expt_name = "Toff_Roff"
+                elif "fromHi" in expt_name:
+                    hist_expt_name = "Thi_Rhi"
+                else:
+                    raise RuntimeError(f"Unrecognized \"from\" in expt_name: {expt_name}")
+                da_hist = das[expt_list.index(hist_expt_name)].copy()
+                da_hist = da_hist.sel(time=slice("2014-01-01", "2014-12-31"))
+                da = xr.concat((da_hist, da), dim="time")
+            da.plot()
+        plt.legend(expt_list)
+    if cropland_only:
+        plt.title(var + " (cropland only)")
+    else:
+        plt.title(var)
+    if rel_diff:
+        plt.axhline(y=1, color="k", linestyle="--")
+        plt.ylabel(f"Relative to {expt_list[0]}")
+    elif y2y_diff or abs_diff:
+        plt.axhline(y=0, color="k", linestyle="--")
+        if abs_diff:
+            plt.ylabel(f"Relative to {expt_list[0]} ({units})")
         else:
             plt.ylabel(units)
-        plt.show()
+    else:
+        plt.ylabel(units)
+    plt.show()
 
 
 def get_timeseries_da(dse, cropland_only, var, wtg, inds):
