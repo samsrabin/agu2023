@@ -234,7 +234,7 @@ def process_and_make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff,
         make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das)
 
 
-def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das_in, figsize=None):
+def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das_in, figsize=None, axlabelsize=None):
     # Ensure all DataArrays have the same units
     units = das_in[0].attrs["units"]
     for d, da in enumerate(das_in):
@@ -296,15 +296,20 @@ def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropl
         plt.title(var)
     if rel_diff:
         plt.axhline(y=1, color="k", linestyle="--")
-        plt.ylabel(f"Relative to {expt_list[0]}")
+        plt.ylabel(f"Relative to {expt_list[0]}",
+                   fontsize=axlabelsize)
     elif y2y_diff or abs_diff:
         plt.axhline(y=0, color="k", linestyle="--")
         if abs_diff:
-            plt.ylabel(f"Relative to {expt_list[0]} ({units})")
+            plt.ylabel(f"Relative to {expt_list[0]} ({units})",
+                       fontsize=axlabelsize)
         else:
-            plt.ylabel(units)
+            plt.ylabel(units,
+                       fontsize=axlabelsize)
     else:
-        plt.ylabel(units)
+        plt.ylabel(units,
+                   fontsize=axlabelsize)
+    plt.xlabel("Year", fontsize=axlabelsize)
     plt.show()
 
 
