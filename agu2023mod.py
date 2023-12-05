@@ -234,7 +234,7 @@ def process_and_make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff,
         make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das)
 
 
-def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das_in):
+def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das_in, figsize=None):
     # Ensure all DataArrays have the same units
     units = das_in[0].attrs["units"]
     for d, da in enumerate(das_in):
@@ -266,7 +266,7 @@ def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropl
     prop_cycle = plt.rcParams['axes.prop_cycle']
     colors = prop_cycle.by_key()['color']
 
-    plt.figure()
+    plt.figure(figsize=figsize)
     if rel_diff or abs_diff:
         for e in np.arange(1, len(das)):
             if rel_diff:

@@ -59,5 +59,7 @@ cropland_only = False
 rolling = None
 do_cumsum = True
 
+figsize = (11, 8.5)
+
 das = get_das(expt_list, var)
 agu23.make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das)
