@@ -3,29 +3,30 @@ import numpy as np
 import xarray as xr
 import os
 
+# Import supporting module
 import sys
-sys.path.append(os.path.dirname(__file__))
+scriptsDir = os.path.dirname(__file__)
+sys.path.append(scriptsDir)
 import agu2023mod as agu23
 
-# Import general CTSM Python utilities
-my_ctsm_python_gallery = "/Users/sam/Documents/git_repos/ctsm_python_gallery_myfork/ctsm_py/"
-sys.path.append(my_ctsm_python_gallery)
-import utils
+# Read configuration
+config = agu23.read_config()
+for option, value in config.items("DEFAULT"):
+    print(f"DEFAULT: {option} = {value}")
+for section in config.sections():
+  for option in config[section]:
+    print(f"{section}: {option} = {config[section][option]}")
+this_dir = config["runs"]["this_dir"]
+expt_list = config.getlist("runs", "expt_list")
 
+# Import general CTSM Python utilities
+sys.path.append(config["system"]["my_ctsm_python_gallery"])
+import utils
 
 
 # %% Import
 
-os.chdir("/Users/Shared/CESM_runs/agu2023_10x15v3.3")
-
-# expt_list = ["Toff_Roff", "Thi_Rhi", "Toff_Roff_fromHi", "Thi_Rhi_fromOff", "Thi_Roff_fromOff", "Toff_Rhi_fromHi"]
-# expt_list = ["Toff_Roff", "Thi_Rhi_fromOff"]
-# expt_list = ["Thi_Rhi", "Toff_Roff_fromHi"]
-# expt_list = ["Toff_Roff", "Thi_Rhi_fromOff", "Toff_Rhi_fromOff"]
-# expt_list = ["Thi_Rhi", "Toff_Roff_fromHi", "Thi_Roff_fromHi"]
-# expt_list = ["Toff_Roff", "Thi_Rhi_fromOff", "Thi_Roff_fromOff"]
-# expt_list = ["Thi_Rhi", "Toff_Roff_fromHi", "Toff_Rhi_fromHi"]
-expt_list = ["Toff_Roff", "Thi_Rhi", "Thi_Rhi_fromOff", "Thi_Roff_fromOff"]
+os.chdir(this_dir)
 
 ds0 = []
 ds1 = []

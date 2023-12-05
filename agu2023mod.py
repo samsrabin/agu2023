@@ -3,11 +3,24 @@ import xarray as xr
 import glob
 import matplotlib.pyplot as plt
 import datetime as dt
+import configparser
+import os
+import sys
+
+def read_config():
+    scriptsDir = os.path.dirname(__file__)
+    config = configparser.ConfigParser(
+        converters={'list': lambda x: [i.strip() for i in x.split(',')]}
+    )
+    config.read(os.path.join(scriptsDir, "agu2023.ini"))
+    return config
+
+
+# Read configuration
+config = read_config()
 
 # Import general CTSM Python utilities
-import sys
-my_ctsm_python_gallery = "/Users/sam/Documents/git_repos/ctsm_python_gallery_myfork/ctsm_py/"
-sys.path.append(my_ctsm_python_gallery)
+sys.path.append(config["system"]["my_ctsm_python_gallery"])
 import utils
 
 
@@ -47,6 +60,7 @@ def get_only_cropland(dse, drop):
                 dse[v] = dse[v].isel({d: 0}, drop=True)
     return dse
 
+
 def get_only_cropland2(dse, wtg):
     where_not_crop = np.where(dse["cols1d_itype_lunit"].values != 2)
     wtg_vals = dse[wtg].values
@@ -59,6 +73,7 @@ def get_only_cropland2(dse, wtg):
     )
     dse[wtg] = wtg_da
     return dse
+
 
 # Calculate total value (instead of per-area)
 def get_total_value(dse, da, cropland_only):
@@ -76,6 +91,7 @@ def get_total_value(dse, da, cropland_only):
     da.attrs["units"] = new_units
     
     return da
+
 
 # Convert units
 def convert_units(dse, da):
@@ -107,6 +123,7 @@ def get_y2y_chg(v, da):
     da.attrs = attrs
     da.name = f"{v} y2y flux"
     return da
+
 
 def get_wtg_inds(cropland_only, var, ds):
     if cropland_only and (var == "GRAINC_TO_FOOD_ANN" or "gridcell" in ds[var].dims):
@@ -160,6 +177,7 @@ def get_weighted(ds, cropland_only, v, var, wtg, inds, e):
         if np.abs(np.nanmax(wtsum - 1)) > 1e-9:
             raise RuntimeError(f"Weights don't add to 1; range {np.nanmin(wtsum)} to {np.nanmax(wtsum)}")
         break # Just check the first timestep
+
 
     # Calculate weighted mean
     tmp = np.full((ds[e].dims["time"], ds[e].dims["gridcell"]), np.nan)
