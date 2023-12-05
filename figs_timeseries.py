@@ -51,15 +51,23 @@ import importlib
 importlib.reload(agu23)
 
 expt_list = ["Toff_Roff", "Thi_Rhi", "Thi_Rhi_fromOff", "Thi_Roff_fromOff"]
-var = "NBP"
+# var = "NBP"
+var = "TOTSOMC"; title = "Soil organic C"
 abs_diff = False
 rel_diff = False
 y2y_diff = False
-cropland_only = False
+cropland_only = True
 rolling = None
-do_cumsum = True
+do_cumsum = False
 
-figsize = (11, 8.5)
+figsize = (16*2/3, 7)
+ticklabelsize = 14
+legendsize = 14
+axlabelsize = 18
+titlesize = 24
 
 das = get_das(expt_list, var)
-agu23.make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das)
+agu23.make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das,
+                title=title,
+                figsize=figsize, axlabelsize=axlabelsize, titlesize=titlesize, ticklabelsize=ticklabelsize,
+                legendsize=legendsize)
