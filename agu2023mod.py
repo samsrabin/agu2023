@@ -41,17 +41,17 @@ def get_only_cropland(dse, drop):
         if "pfts1d_" in v:
             drop_list.append(v)
     dse = dse.drop(drop_list)
-    
+
     # Get dict of original dimensions for each variable
     orig_var_dims = {}
     for v in dse:
         orig_var_dims[v] = dse[v].copy().dims
-    
+
     # Include only crop landunits
     for v in dse:
         if "column" in dse[v].dims:
             dse[v] = dse[v].where(dse["cols1d_itype_lunit"] == 2, drop=drop)
-    
+
     # Remove extraneous dimension(s) added to various variables
     for v in dse:
         for d in dse[v].dims:
@@ -89,7 +89,7 @@ def get_total_value(dse, da, cropland_only):
         area_da = area_da * dse["frac_crop"]
     da *= area_da
     da.attrs["units"] = new_units
-    
+
     return da
 
 
@@ -99,7 +99,7 @@ def convert_units(dse, da):
         units = da.attrs["units"].replace("gC", "PgC")
         da = da * 1e-15
         da.attrs["units"] = units
-        
+
     if "/s" in da.attrs["units"]:
         t0 = dse["time_bounds"].values[1,0]
         t1 = dse["time_bounds"].values[1,1]
@@ -110,7 +110,7 @@ def convert_units(dse, da):
         else:
             raise RuntimeError(f"Unrecognized time delta: {tdelta}")
         da.attrs["units"] = units
-    
+
     return da
 
 
@@ -128,7 +128,7 @@ def get_y2y_chg(v, da):
 def get_wtg_inds(cropland_only, var, ds):
     if cropland_only and (var == "GRAINC_TO_FOOD_ANN" or "gridcell" in ds[var].dims):
         raise RuntimeError(f"{var} can't be used with cropland_only=True")
-    
+
     dims = ds[var].dims
     if "pft" in dims:
         wtg = "pfts1d_wtgcell"
@@ -155,7 +155,7 @@ def get_frac_crop(dse):
     da = da.rename({"land1d_gi": "gridcell"})
     dse["frac_crop_vector"] = da
     dse["frac_crop"] = utils.grid_one_variable(dse, "frac_crop_vector")
-    
+
     return dse
 
 
@@ -167,7 +167,7 @@ def get_weighted(dse, cropland_only, var, wtg, inds):
     # Get fraction of each gridcell that's cropland
     if cropland_only and "frac_crop" not in dse:
         dse = get_frac_crop(dse)
-            
+
     # Ensure that weights sum to 1
     groupby_var_da = dse[inds]
     for t in np.arange(dse.dims["time"]):
@@ -196,28 +196,28 @@ def get_weighted(dse, cropland_only, var, wtg, inds):
         dims=new_coords,
         attrs=dse[var].attrs
     )
-    
+
     return dse, da
 
 
 
 
 def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_only, rolling=None):
-    
+
     if isinstance(var_list, str):
         var_list = [var_list]
-    
+
     if rel_diff and y2y_diff:
         raise RuntimeError("rel_diff and y2y_diff are mutually exclusive")
     if rel_diff and abs_diff:
         raise RuntimeError("rel_diff and abs_diff are mutually exclusive")
-    
+
     # Get line colors to cycle through
     prop_cycle = plt.rcParams['axes.prop_cycle']
     colors = prop_cycle.by_key()['color']
 
     for _, var in enumerate(var_list):
-        
+
         # Process modifiers
         do_cumsum = False
         while "." in var:
@@ -226,20 +226,20 @@ def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_on
                 var = var.replace(".CUMSUM", "")
             else:
                 raise RuntimeError(f"Unexpected modifier(s) in var: {var}")
-        
+
         wtg, inds = get_wtg_inds(cropland_only, var, ds[0])
-                
+
         das = []
         plt.figure()
         for e, expt_name in enumerate(expt_list):
-            
+
             da = get_timeseries_da(ds[e], y2y_diff, cropland_only, rolling, var, do_cumsum, wtg, inds)
             da = modify_timeseries_da(da, do_cumsum, rolling, y2y_diff)
-            
+
             # Plot (or save for plotting later)
             units = da.attrs["units"]
             das.append(da)
-        
+
         if rel_diff or abs_diff:
             for e in np.arange(1, len(das)):
                 if rel_diff:
@@ -287,16 +287,16 @@ def get_timeseries_da(dse, y2y_diff, cropland_only, rolling, var, do_cumsum, wtg
     else:
         dse = get_frac_crop(dse)
         da = dse[var]
-            
+
     # Calculate total value (instead of per-area)
     da = get_total_value(dse, da, cropland_only)
-            
+
     # Calculate global sum
     da = da.sum(dim=["lat","lon"], keep_attrs=True)
-            
+
     # Convert units
     da = convert_units(dse, da)
-            
+
     # Ignore first time step, which seems to be garbage for NBP etc.
     Ntime = dse.dims["time"]
     da = da.isel(time=slice(1, Ntime))
@@ -311,7 +311,7 @@ def modify_timeseries_da(da, do_cumsum, rolling, y2y_diff):
     # Smooth
     if rolling is not None:
         da = da.rolling(time=rolling, center=True).mean()
-            
+
     # Get year-to-year change (i.e., net flux)
     if y2y_diff:
         da = get_y2y_chg(v, da)
