@@ -233,7 +233,7 @@ def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_on
         plt.figure()
         for e, expt_name in enumerate(expt_list):
 
-            da = get_timeseries_da(ds[e], y2y_diff, cropland_only, rolling, var, do_cumsum, wtg, inds)
+            da = get_timeseries_da(ds[e], cropland_only, var, wtg, inds)
             da = modify_timeseries_da(da, do_cumsum, rolling, y2y_diff)
 
             # Plot (or save for plotting later)
@@ -281,7 +281,7 @@ def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_on
         plt.show()
 
 
-def get_timeseries_da(dse, y2y_diff, cropland_only, rolling, var, do_cumsum, wtg, inds):
+def get_timeseries_da(dse, cropland_only, var, wtg, inds):
     if wtg is not None:
         dse, da = get_weighted(dse, cropland_only, var, wtg, inds)
     else:
