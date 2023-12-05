@@ -234,18 +234,33 @@ def process_and_make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff,
         make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das)
 
 
-def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das):
+def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das_in):
     # Ensure all DataArrays have the same units
-    units = das[0].attrs["units"]
-    for d, da in enumerate(das):
+    units = das_in[0].attrs["units"]
+    for d, da in enumerate(das_in):
         if d == 0:
             continue
         if units != da.attrs["units"]:
             raise RuntimeError(f"Units mismatch: {units} vs. {da.attrs['units']}")
 
     # Modify DataArrays, if needed
-    for d, da in enumerate(das):
-        das[d] = modify_timeseries_da(da, do_cumsum, rolling, y2y_diff)
+    das = []
+    for d, da in enumerate(das_in):
+        expt = expt_list[d]
+        if "from" in expt:
+            if "fromOff" in expt:
+                da0 = das_in[expt_list.index("Toff_Roff")]
+            elif "fromHi" in expt:
+                da0 = das_in[expt_list.index("Thi_Rhi")]
+            else:
+                raise RuntimeError(f"Which da0 to use for {expt}?")
+            da2 = xr.concat((da0.sel(time=slice("1901-01-01", "2014-12-31")),
+                             da),
+                           dim="time")
+            da3 = modify_timeseries_da(da2, do_cumsum, rolling, y2y_diff)
+            das.append(da3.sel(time=slice("2015-01-01", "2100-12-31")))
+        else:
+            das.append(modify_timeseries_da(da, do_cumsum, rolling, y2y_diff))
 
     # Get line colors to cycle through
     prop_cycle = plt.rcParams['axes.prop_cycle']
