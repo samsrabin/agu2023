@@ -12,11 +12,12 @@ import utils
 
 
 def get_file(h, expt_name):
-    file = glob.glob(f"*{expt_name}.clm2.h{h}s.*")
+    pattern = f"*{expt_name}.clm2.h{h}s.*"
+    file = glob.glob(pattern)
     if len(file) > 1:
         raise RuntimeError(f"{len(file)} matches found: {file}")
     elif len(file) < 1:
-        raise RuntimeError(f"{len(file)} matches found")
+        raise RuntimeError(f"{len(file)} matches found for {pattern}")
     return file[0]
 
 
