@@ -114,14 +114,13 @@ def convert_units(dse, da):
     return da
 
 
-def get_y2y_chg(v, da):
+def get_y2y_chg(da):
     attrs = da.attrs
     da1 = da.isel(time=slice(1,None))
     da0 = da.isel(time=slice(None,-1))
     da0 = da0.assign_coords({"time": da1["time"]})
     da = da1 - da0
     da.attrs = attrs
-    da.name = f"{v} y2y flux"
     return da
 
 
@@ -314,6 +313,6 @@ def modify_timeseries_da(da, do_cumsum, rolling, y2y_diff):
 
     # Get year-to-year change (i.e., net flux)
     if y2y_diff:
-        da = get_y2y_chg(v, da)
+        da = get_y2y_chg(da)
 
     return da
