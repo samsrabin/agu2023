@@ -3,6 +3,7 @@ import xarray as xr
 import os
 import pickle
 import glob
+import cftime
 
 # Import supporting module
 import sys
@@ -48,6 +49,15 @@ def get_das(expt_list, var, cropland_only):
     return das
 
 
+def get_xticks(yearlist):
+    xticks = []
+    xticklabels = []
+    for y in yearlist:
+        xticks.append(cftime.DatetimeNoLeap(y, 1, 1, 0, 0, 0, 0, has_year_zero=True))
+        xticklabels.append(y)
+    return xticks,xticklabels
+
+
 # %%
 import importlib
 importlib.reload(agu23)
@@ -61,12 +71,15 @@ y2y_diff = False
 cropland_only = True
 rolling = None
 do_cumsum = False
+xticks = [1901, 1950, 2015, 2050, 2090]
 
 figsize = (16*2/3, 7)
 ticklabelsize = 14
 legendsize = 14
 axlabelsize = 18
 titlesize = 24
+
+xticks, xticklabels = get_xticks(xticks)
 
 das = get_das(expt_list, var, cropland_only)
 agu23.make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das,

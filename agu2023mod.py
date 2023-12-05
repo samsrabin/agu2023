@@ -234,7 +234,7 @@ def process_and_make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff,
         make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das)
 
 
-def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das_in, title=None, figsize=None, axlabelsize=None, titlesize=None, ticklabelsize=None, legendsize=None):
+def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das_in, title=None, figsize=None, axlabelsize=None, titlesize=None, ticklabelsize=None, legendsize=None, xticks=None, xticklabels=None):
     # Ensure all DataArrays have the same units
     units = das_in[0].attrs["units"]
     for d, da in enumerate(das_in):
@@ -317,6 +317,10 @@ def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropl
                    fontsize=axlabelsize)
     plt.xlabel("Year", fontsize=axlabelsize)
     plt.tick_params(labelsize=ticklabelsize)
+
+    if xticks is not None:
+        plt.xticks(xticks, xticklabels)
+
     plt.show()
 
 
