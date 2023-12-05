@@ -1,0 +1,287 @@
+import numpy as np
+import xarray as xr
+import glob
+import matplotlib.pyplot as plt
+import datetime as dt
+
+# Import general CTSM Python utilities
+import sys
+my_ctsm_python_gallery = "/Users/sam/Documents/git_repos/ctsm_python_gallery_myfork/ctsm_py/"
+sys.path.append(my_ctsm_python_gallery)
+import utils
+
+
+def get_file(h, expt_name):
+    file = glob.glob(f"*{expt_name}.clm2.h{h}s.*")
+    if len(file) > 1:
+        raise RuntimeError(f"{len(file)} matches found: {file}")
+    elif len(file) < 1:
+        raise RuntimeError(f"{len(file)} matches found")
+    return file[0]
+
+
+def get_only_cropland(dse, drop):
+    # Drop pfts1d variables, which aren't needed. This speeds things up.
+    drop_list = []
+    for v in dse:
+        if "pfts1d_" in v:
+            drop_list.append(v)
+    dse = dse.drop(drop_list)
+    
+    # Get dict of original dimensions for each variable
+    orig_var_dims = {}
+    for v in dse:
+        orig_var_dims[v] = dse[v].copy().dims
+    
+    # Include only crop landunits
+    for v in dse:
+        if "column" in dse[v].dims:
+            dse[v] = dse[v].where(dse["cols1d_itype_lunit"] == 2, drop=drop)
+    
+    # Remove extraneous dimension(s) added to various variables
+    for v in dse:
+        for d in dse[v].dims:
+            if d not in orig_var_dims[v]:
+                dse[v] = dse[v].assign_coords({d: dse[d]})
+                dse[v] = dse[v].isel({d: 0}, drop=True)
+    return dse
+
+def get_only_cropland2(dse, wtg):
+    where_not_crop = np.where(dse["cols1d_itype_lunit"].values != 2)
+    wtg_vals = dse[wtg].values
+    wtg_vals[where_not_crop] = 0
+    wtg_da = xr.DataArray(
+        data=wtg_vals,
+        coords=dse[wtg].coords,
+        dims=dse[wtg].dims,
+        attrs=dse[wtg].attrs,
+    )
+    dse[wtg] = wtg_da
+    return dse
+
+# Calculate total value (instead of per-area)
+def get_total_value(dse, da, cropland_only):
+    dse["tmp"] = da
+    da = utils.grid_one_variable(dse, "tmp")
+    old_units = da.attrs["units"]
+    if "/m^2" in old_units:
+        new_units = old_units.replace("/m^2", "")
+    else:
+        new_units = old_units + " m^2"
+    area_da = dse["area"]*1e6
+    if cropland_only:
+        area_da = area_da * dse["frac_crop"]
+    da *= area_da
+    da.attrs["units"] = new_units
+    
+    return da
+
+# Convert units
+def convert_units(dse, da):
+    if "gC" in da.attrs["units"]:
+        units = da.attrs["units"].replace("gC", "PgC")
+        da = da * 1e-15
+        da.attrs["units"] = units
+        
+    if "/s" in da.attrs["units"]:
+        t0 = dse["time_bounds"].values[1,0]
+        t1 = dse["time_bounds"].values[1,1]
+        tdelta = t1 - t0
+        if tdelta  == dt.timedelta(days=365):
+            units = da.attrs["units"].replace("/s", "/yr")
+            da = da * 365*24*60*60
+        else:
+            raise RuntimeError(f"Unrecognized time delta: {tdelta}")
+        da.attrs["units"] = units
+    
+    return da
+
+
+def get_y2y_chg(v, da):
+    attrs = da.attrs
+    da1 = da.isel(time=slice(1,None))
+    da0 = da.isel(time=slice(None,-1))
+    da0 = da0.assign_coords({"time": da1["time"]})
+    da = da1 - da0
+    da.attrs = attrs
+    da.name = f"{v} y2y flux"
+    return da
+
+def get_wtg_inds(cropland_only, var, ds):
+    if cropland_only and (var == "GRAINC_TO_FOOD_ANN" or "gridcell" in ds[var].dims):
+        raise RuntimeError(f"{var} can't be used with cropland_only=True")
+    
+    dims = ds[var].dims
+    if "pft" in dims:
+        wtg = "pfts1d_wtgcell"
+        inds = "pfts1d_gi"
+    elif "gridcell" in dims:
+        wtg = None
+        inds = None
+    elif "column" in dims:
+        if cropland_only:
+            wtg = "cols1d_wtlunit"
+            inds = "cols1d_gi"
+        else:
+            wtg = "cols1d_wtgcell"
+            inds = "cols1d_gi"
+    else:
+        raise RuntimeError(f"Unknown wtg/inds for dims {dims}")
+    return wtg,inds
+
+
+# Get fraction of each gridcell that's cropland
+def get_frac_crop(dse):
+    da = dse["land1d_wtgcell"].where(dse["land1d_ityplunit"] == 2)
+    da = da.groupby(dse["land1d_gi"]).sum(skipna=True)
+    da = da.rename({"land1d_gi": "gridcell"})
+    dse["frac_crop_vector"] = da
+    dse["frac_crop"] = utils.grid_one_variable(dse, "frac_crop_vector")
+    
+    return dse
+
+
+def get_weighted(ds, cropland_only, v, var, wtg, inds, e):
+    if cropland_only and v==0:
+        # Get crop PFTs/columns
+        ds[e] = get_only_cropland(ds[e], drop="time" not in ds[e][inds].dims)
+
+        # Get fraction of each gridcell that's cropland
+        ds[e] = get_frac_crop(ds[e])
+            
+    # Ensure that weights sum to 1
+    groupby_var_da = ds[e][inds]
+    for t in np.arange(ds[e].dims["time"]):
+        dset = ds[e].isel(time=t)
+        groupby_var_da = dset[inds]
+        wts_grouped = dset[wtg].groupby(groupby_var_da)
+        wtsum = wts_grouped.sum(skipna=True)
+        if np.abs(np.nanmax(wtsum - 1)) > 1e-9:
+            raise RuntimeError(f"Weights don't add to 1; range {np.nanmin(wtsum)} to {np.nanmax(wtsum)}")
+        break # Just check the first timestep
+
+    # Calculate weighted mean
+    tmp = np.full((ds[e].dims["time"], ds[e].dims["gridcell"]), np.nan)
+    for t in np.arange(ds[e].dims["time"]):
+        dset = ds[e].isel(time=t, drop=True)
+        dat_grouped = (dset[var] * dset[wtg]).groupby(dset[inds])
+        dat = dat_grouped.sum(skipna=True)
+        tmp[t,:] = dat.values
+    new_coords = {"time": ds[e]["time"],
+                  "gridcell": ds[e]["gridcell"]
+                 }
+    da = xr.DataArray(
+        data=tmp,
+        coords=new_coords,
+        dims=new_coords,
+        attrs=ds[e][var].attrs
+    )
+    
+    return da
+
+
+def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_only, rolling=None):
+    
+    if isinstance(var_list, str):
+        var_list = [var_list]
+    
+    if rel_diff and y2y_diff:
+        raise RuntimeError("rel_diff and y2y_diff are mutually exclusive")
+    if rel_diff and abs_diff:
+        raise RuntimeError("rel_diff and abs_diff are mutually exclusive")
+    
+    # Get line colors to cycle through
+    prop_cycle = plt.rcParams['axes.prop_cycle']
+    colors = prop_cycle.by_key()['color']
+
+    for v, var in enumerate(var_list):
+        
+        # Process modifiers
+        do_cumsum = False
+        while "." in var:
+            if ".CUMSUM" in var:
+                do_cumsum = True
+                var = var.replace(".CUMSUM", "")
+            else:
+                raise RuntimeError(f"Unexpected modifier(s) in var: {var}")
+        
+        wtg, inds = get_wtg_inds(cropland_only, var, ds[0])
+                
+        das = []
+        plt.figure()
+        for e, expt_name in enumerate(expt_list):
+            
+            if wtg is not None:
+                da = get_weighted(ds, cropland_only, v, var, wtg, inds, e)
+            else:
+                ds[e] = get_frac_crop(ds[e])
+                da = ds[e][var]
+            
+            # Calculate total value (instead of per-area)
+            da = get_total_value(ds[e], da, cropland_only)
+            
+            # Calculate global sum
+            da = da.sum(dim=["lat","lon"], keep_attrs=True)
+            
+            # Convert units
+            da = convert_units(ds[e], da)
+            
+            # Ignore first time step, which seems to be garbage for NBP etc.
+            Ntime = ds[e].dims["time"]
+            da = da.isel(time=slice(1, Ntime))
+            
+            # Apply modifiers, if any
+            if do_cumsum:
+                da = da.cumsum(dim="time", keep_attrs=True)
+            
+            # Smooth
+            if rolling is not None:
+                da = da.rolling(time=rolling, center=True).mean()
+            
+            # Get year-to-year change (i.e., net flux)
+            if y2y_diff:
+                da = get_y2y_chg(v, da)
+            
+            # Plot (or save for plotting later)
+            units = da.attrs["units"]
+            das.append(da)
+        
+        if rel_diff or abs_diff:
+            for e in np.arange(1, len(das)):
+                if rel_diff:
+                    da = das[e] / das[0]
+                elif abs_diff:
+                    da = das[e] - das[0]
+                da.plot(color=colors[e])
+            plt.legend(expt_list[1:])
+        else:
+            for e, expt_name in enumerate(expt_list):
+                da = das[e].copy()
+                if "from" in expt_name:
+                    if "fromOff" in expt_name:
+                        hist_expt_name = "Toff_Roff"
+                    elif "fromHi" in expt_name:
+                        hist_expt_name = "Thi_Rhi"
+                    else:
+                        raise RuntimeError(f"Unrecognized \"from\" in expt_name: {expt_name}")
+                    da_hist = das[expt_list.index(hist_expt_name)].copy()
+                    da_hist = da_hist.sel(time=slice("2014-01-01", "2014-12-31"))
+                    da = xr.concat((da_hist, da), dim="time")
+                da.plot()
+            plt.legend(expt_list)
+        if cropland_only:
+            plt.title(var + " (cropland only)")
+        else:
+            plt.title(var)
+        if rel_diff:
+            plt.axhline(y=1, color="k", linestyle="--")
+            plt.ylabel(f"Relative to {expt_list[0]}")
+        elif y2y_diff or abs_diff:
+            plt.axhline(y=0, color="k", linestyle="--")
+            if abs_diff:
+                plt.ylabel(f"Relative to {expt_list[0]} ({units})")
+            else:
+                plt.ylabel(units)
+        else:
+            plt.ylabel(units)
+        plt.show()
