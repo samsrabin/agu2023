@@ -159,18 +159,19 @@ def get_frac_crop(dse):
     return dse
 
 
-def get_weighted(ds, cropland_only, v, var, wtg, inds, e):
-    if cropland_only and v==0:
-        # Get crop PFTs/columns
-        ds[e] = get_only_cropland(ds[e], drop="time" not in ds[e][inds].dims)
+def get_weighted(dse, cropland_only, var, wtg, inds):
+    # Get crop PFTs/columns
+    if cropland_only and any(["pfts1d_" in v for v in dse]):
+        dse = get_only_cropland(dse, drop="time" not in dse[inds].dims)
 
-        # Get fraction of each gridcell that's cropland
-        ds[e] = get_frac_crop(ds[e])
+    # Get fraction of each gridcell that's cropland
+    if cropland_only and "frac_crop" not in dse:
+        dse = get_frac_crop(dse)
             
     # Ensure that weights sum to 1
-    groupby_var_da = ds[e][inds]
-    for t in np.arange(ds[e].dims["time"]):
-        dset = ds[e].isel(time=t)
+    groupby_var_da = dse[inds]
+    for t in np.arange(dse.dims["time"]):
+        dset = dse.isel(time=t)
         groupby_var_da = dset[inds]
         wts_grouped = dset[wtg].groupby(groupby_var_da)
         wtsum = wts_grouped.sum(skipna=True)
@@ -180,23 +181,25 @@ def get_weighted(ds, cropland_only, v, var, wtg, inds, e):
 
 
     # Calculate weighted mean
-    tmp = np.full((ds[e].dims["time"], ds[e].dims["gridcell"]), np.nan)
-    for t in np.arange(ds[e].dims["time"]):
-        dset = ds[e].isel(time=t, drop=True)
+    tmp = np.full((dse.dims["time"], dse.dims["gridcell"]), np.nan)
+    for t in np.arange(dse.dims["time"]):
+        dset = dse.isel(time=t, drop=True)
         dat_grouped = (dset[var] * dset[wtg]).groupby(dset[inds])
         dat = dat_grouped.sum(skipna=True)
         tmp[t,:] = dat.values
-    new_coords = {"time": ds[e]["time"],
-                  "gridcell": ds[e]["gridcell"]
+    new_coords = {"time": dse["time"],
+                  "gridcell": dse["gridcell"]
                  }
     da = xr.DataArray(
         data=tmp,
         coords=new_coords,
         dims=new_coords,
-        attrs=ds[e][var].attrs
+        attrs=dse[var].attrs
     )
     
-    return da
+    return dse, da
+
+
 
 
 def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_only, rolling=None):
@@ -213,7 +216,7 @@ def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_on
     prop_cycle = plt.rcParams['axes.prop_cycle']
     colors = prop_cycle.by_key()['color']
 
-    for v, var in enumerate(var_list):
+    for _, var in enumerate(var_list):
         
         # Process modifiers
         do_cumsum = False
@@ -230,36 +233,7 @@ def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_on
         plt.figure()
         for e, expt_name in enumerate(expt_list):
             
-            if wtg is not None:
-                da = get_weighted(ds, cropland_only, v, var, wtg, inds, e)
-            else:
-                ds[e] = get_frac_crop(ds[e])
-                da = ds[e][var]
-            
-            # Calculate total value (instead of per-area)
-            da = get_total_value(ds[e], da, cropland_only)
-            
-            # Calculate global sum
-            da = da.sum(dim=["lat","lon"], keep_attrs=True)
-            
-            # Convert units
-            da = convert_units(ds[e], da)
-            
-            # Ignore first time step, which seems to be garbage for NBP etc.
-            Ntime = ds[e].dims["time"]
-            da = da.isel(time=slice(1, Ntime))
-            
-            # Apply modifiers, if any
-            if do_cumsum:
-                da = da.cumsum(dim="time", keep_attrs=True)
-            
-            # Smooth
-            if rolling is not None:
-                da = da.rolling(time=rolling, center=True).mean()
-            
-            # Get year-to-year change (i.e., net flux)
-            if y2y_diff:
-                da = get_y2y_chg(v, da)
+            da = get_timeseries_da(ds[e], y2y_diff, cropland_only, rolling, var, do_cumsum, wtg, inds)
             
             # Plot (or save for plotting later)
             units = da.attrs["units"]
@@ -304,3 +278,37 @@ def make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_on
         else:
             plt.ylabel(units)
         plt.show()
+
+
+def get_timeseries_da(dse, y2y_diff, cropland_only, rolling, var, do_cumsum, wtg, inds):
+    if wtg is not None:
+        dse, da = get_weighted(dse, cropland_only, var, wtg, inds)
+    else:
+        dse = get_frac_crop(dse)
+        da = dse[var]
+            
+    # Calculate total value (instead of per-area)
+    da = get_total_value(dse, da, cropland_only)
+            
+    # Calculate global sum
+    da = da.sum(dim=["lat","lon"], keep_attrs=True)
+            
+    # Convert units
+    da = convert_units(dse, da)
+            
+    # Ignore first time step, which seems to be garbage for NBP etc.
+    Ntime = dse.dims["time"]
+    da = da.isel(time=slice(1, Ntime))
+            
+    # Apply modifiers, if any
+    if do_cumsum:
+        da = da.cumsum(dim="time", keep_attrs=True)
+            
+    # Smooth
+    if rolling is not None:
+        da = da.rolling(time=rolling, center=True).mean()
+            
+    # Get year-to-year change (i.e., net flux)
+    if y2y_diff:
+        da = get_y2y_chg(v, da)
+    return da
