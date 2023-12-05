@@ -25,7 +25,7 @@ import utils
 
 
 def get_file(h, expt_name):
-    pattern = f"*{expt_name}.clm2.h{h}s.*"
+    pattern = f"*{expt_name}.clm2.h{h}s.*.nc"
     file = glob.glob(pattern)
     if len(file) > 1:
         raise RuntimeError(f"{len(file)} matches found: {file}")
