@@ -97,8 +97,9 @@ def get_total_value(dse, da, cropland_only):
 def convert_units(dse, da):
     units = da.attrs["units"]
 
-    if "gC" in units:
+    if "gC" in units or "gN" in units:
         units = units.replace("gC", "PgC")
+        units = units.replace("gN", "PgN")
         da = da * 1e-15
 
     if "/s" in units:
