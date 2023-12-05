@@ -95,21 +95,23 @@ def get_total_value(dse, da, cropland_only):
 
 # Convert units
 def convert_units(dse, da):
-    if "gC" in da.attrs["units"]:
-        units = da.attrs["units"].replace("gC", "PgC")
-        da = da * 1e-15
-        da.attrs["units"] = units
+    units = da.attrs["units"]
 
-    if "/s" in da.attrs["units"]:
+    if "gC" in units:
+        units = units.replace("gC", "PgC")
+        da = da * 1e-15
+
+    if "/s" in units:
         t0 = dse["time_bounds"].values[1,0]
         t1 = dse["time_bounds"].values[1,1]
         tdelta = t1 - t0
-        if tdelta  == dt.timedelta(days=365):
-            units = da.attrs["units"].replace("/s", "/yr")
+        if tdelta == dt.timedelta(days=365):
+            units = units.replace("/s", "/yr")
             da = da * 365*24*60*60
         else:
             raise RuntimeError(f"Unrecognized time delta: {tdelta}")
-        da.attrs["units"] = units
+
+    da.attrs["units"] = units
 
     return da
 
