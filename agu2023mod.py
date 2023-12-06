@@ -188,7 +188,7 @@ def get_weighted(dse, cropland_only, var, wtg, inds):
     for t in np.arange(dse.dims["time"]):
         dset = dse.isel(time=t, drop=True)
         dat_grouped = (dset[var] * dset[wtg]).groupby(dset[inds])
-        dat = dat_grouped.sum(skipna=True)
+        dat = dat_grouped.sum(skipna=True) # BOTTLENECK
         tmp[t,:] = dat.values
     new_coords = {"time": dse["time"],
                   "gridcell": dse["gridcell"]
