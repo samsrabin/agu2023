@@ -260,6 +260,7 @@ def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropl
             das.append(da3.sel(time=slice("2015-01-01", "2100-12-31")))
         else:
             das.append(modify_timeseries_da(da, do_cumsum, rolling, y2y_diff))
+    units = das[0].attrs["units"]
 
     # Get line colors to cycle through
     prop_cycle = plt.rcParams['axes.prop_cycle']
@@ -343,7 +344,11 @@ def get_timeseries_da(dse, cropland_only, var, wtg, inds):
 
 def modify_timeseries_da(da, do_cumsum, rolling, y2y_diff):
     if do_cumsum:
+        units = da.attrs["units"]
+        if "/yr" not in units:
+            raise RuntimeError(f"Trying to do cumsum of units without /yr: {units}")
         da = da.cumsum(dim="time", keep_attrs=True)
+        da.attrs["units"] = units.replace("/yr", " (cumulative)")
 
     # Smooth
     if rolling is not None:
