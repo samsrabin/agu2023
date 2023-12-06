@@ -12,16 +12,6 @@ scriptsDir = os.path.dirname(__file__)
 sys.path.append(scriptsDir)
 import agu2023mod as agu23
 
-# Read configuration
-config = agu23.read_config()
-for option, value in config.items("DEFAULT"):
-    print(f"DEFAULT: {option} = {value}")
-for section in config.sections():
-  for option in config[section]:
-    print(f"{section}: {option} = {config[section][option]}")
-this_dir = config["runs"]["this_dir"]
-os.chdir(this_dir)
-
 
 # %% Define
 
@@ -91,6 +81,8 @@ import importlib
 importlib.reload(agu23)
 
 o, expt_list, rolling, title, xticks, xticklabels = read_fig_config(get_xticks)
+this_dir = o["runs"]["this_dir"]
+os.chdir(this_dir)
 
 das = get_das(expt_list,
               o["var"]["name"],
