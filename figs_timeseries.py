@@ -97,7 +97,10 @@ das = get_das(expt_list,
               o.getboolean("fig", "cropland_only"),
               )
 
-figsize = (16*2/3, 7)
+figsize = (
+    o.getfloat("fig", "figsize_x"),
+    o.getfloat("fig", "figsize_y"),
+)
 agu23.make_plot(expt_list,
                 o.getboolean("fig", "abs_diff"),
                 o.getboolean("fig", "rel_diff"),
