@@ -284,7 +284,7 @@ def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropl
                 da_hist = das[expt_list.index(hist_expt_name)].copy()
                 da_hist = da_hist.sel(time=slice("2014-01-01", "2014-12-31"))
                 da = xr.concat((da_hist, da), dim="time")
-            da.plot()
+            da.plot(color=colors[e])
         legend_items = expt_list
 
     plt.legend(legend_items, fontsize=legendsize)
