@@ -251,14 +251,8 @@ def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropl
     for d, da in enumerate(das_in):
         expt = expt_list[d]
         if "from" in expt:
-            if "fromOff" in expt:
-                da0 = das_in[expt_list.index("Toff_Roff")]
-            elif "fromHiLo" in expt:
-                da0 = das_in[expt_list.index("Thi_Rlo")]
-            elif "fromHi" in expt:
-                da0 = das_in[expt_list.index("Thi_Rhi")]
-            else:
-                raise RuntimeError(f"Which da0 to use for {expt}?")
+            hist_expt_name = get_hist_expt_name(expt)
+            da0 = das_in[expt_list.index(hist_expt_name)]
             da2 = xr.concat((da0.sel(time=slice("1901-01-01", "2014-12-31")),
                              da),
                            dim="time")
@@ -284,14 +278,7 @@ def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropl
         for e, expt_name in enumerate(expt_list):
             da = das[e].copy()
             if "from" in expt_name:
-                if "fromOff" in expt_name:
-                    hist_expt_name = "Toff_Roff"
-                elif "fromHiLo" in expt_name:
-                    hist_expt_name = "Thi_Rlo"
-                elif "fromHi" in expt_name:
-                    hist_expt_name = "Thi_Rhi"
-                else:
-                    raise RuntimeError(f"Unrecognized \"from\" in expt_name: {expt_name}")
+                hist_expt_name = get_hist_expt_name(expt_name)
                 da_hist = das[expt_list.index(hist_expt_name)].copy()
                 da_hist = da_hist.sel(time=slice("2014-01-01", "2014-12-31"))
                 da = xr.concat((da_hist, da), dim="time")
@@ -379,3 +366,16 @@ def shift_1_year_earlier(da):
         )
     da = da.assign_coords(time=new_time_da)
     return da
+
+
+def get_hist_expt_name(expt_name):
+    if "fromOff" in expt_name:
+        hist_expt_name = "Toff_Roff"
+    elif "fromHiLo" in expt_name:
+        hist_expt_name = "Thi_Rlo"
+    elif "fromHi" in expt_name:
+        hist_expt_name = "Thi_Rhi"
+    else:
+        raise RuntimeError(f"Unrecognized \"from\" in expt_name: {expt_name}")
+
+    return hist_expt_name
