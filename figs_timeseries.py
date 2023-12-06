@@ -76,7 +76,12 @@ def read_fig_config(get_xticks):
 
     new_colors = get_colors(expt_list, o.getlist("fig", "colors"))
 
-    return o, expt_list, rolling, title, xticks, xticklabels, new_colors
+    figsize = (
+        o.getfloat("fig", "figsize_x"),
+        o.getfloat("fig", "figsize_y"),
+    )
+
+    return o, expt_list, rolling, title, xticks, xticklabels, new_colors, figsize
 
 
 def get_colors(expt_list, colors):
@@ -95,7 +100,7 @@ def get_colors(expt_list, colors):
 import importlib
 importlib.reload(agu23)
 
-o, expt_list, rolling, title, xticks, xticklabels, new_colors = read_fig_config(get_xticks)
+o, expt_list, rolling, title, xticks, xticklabels, new_colors, figsize = read_fig_config(get_xticks)
 this_dir = o["runs"]["this_dir"]
 os.chdir(this_dir)
 
@@ -104,10 +109,6 @@ das = get_das(
     o["var"]["name"],
     o.getboolean("fig", "cropland_only"),
     )
-figsize = (
-    o.getfloat("fig", "figsize_x"),
-    o.getfloat("fig", "figsize_y"),
-)
 
 agu23.make_plot(
     expt_list,
