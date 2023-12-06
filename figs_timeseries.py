@@ -3,6 +3,7 @@ import xarray as xr
 import os
 import pickle
 import glob
+import configparser
 import cftime
 
 # Import supporting module
@@ -58,31 +59,57 @@ def get_xticks(yearlist):
     return xticks,xticklabels
 
 
-# %%
+def read_fig_config(get_xticks):
+    scriptsDir = os.path.dirname(__file__)
+    o = configparser.ConfigParser(
+    converters={'list': lambda x: [i.strip() for i in x.split(',')]},
+    allow_no_value=True,
+)
+    o.read(os.path.join(scriptsDir, "figs_timeseries.ini"))
+    expt_list = o.getlist("runs", "expt_list")
+    fig_keys = [k for k in o["fig"].keys()]
+    if "rolling" not in fig_keys:
+        rolling = None
+    else:
+        rolling = o.getint("fig", "rolling")
+    var_keys = [k for k in o["var"].keys()]
+    if "title" not in var_keys or o["var"]["title"]=="":
+        title = None
+    else:
+        title = o["var"]["title"]
+
+    xticks, xticklabels = get_xticks([int(x) for x in o.getlist("fig", "xticks")])
+    return o, expt_list, rolling, title, xticks, xticklabels
+
+
+# %% Make plot
+
 import importlib
 importlib.reload(agu23)
 
-expt_list = ["Toff_Roff", "Thi_Rhi", "Thi_Rhi_fromOff", "Thi_Roff_fromOff"]
-# var = "NBP"
-var = "TOTSOMC"; title = "Soil organic C"
-abs_diff = False
-rel_diff = False
-y2y_diff = False
-cropland_only = True
-rolling = None
-do_cumsum = False
-xticks = [1901, 1950, 2015, 2050, 2090]
+o, expt_list, rolling, title, xticks, xticklabels = read_fig_config(get_xticks)
+
+das = get_das(expt_list,
+              o["var"]["name"],
+              o.getboolean("fig", "cropland_only"),
+              )
 
 figsize = (16*2/3, 7)
-ticklabelsize = 14
-legendsize = 14
-axlabelsize = 18
-titlesize = 24
-
-xticks, xticklabels = get_xticks(xticks)
-
-das = get_das(expt_list, var, cropland_only)
-agu23.make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das,
+agu23.make_plot(expt_list,
+                o.getboolean("fig", "abs_diff"),
+                o.getboolean("fig", "rel_diff"),
+                o.getboolean("fig", "y2y_diff"),
+                o.getboolean("fig", "do_cumsum"),
+                rolling,
+                o.getboolean("fig", "cropland_only"),
+                o["var"]["name"],
+                das,
                 title=title,
-                figsize=figsize, axlabelsize=axlabelsize, titlesize=titlesize, ticklabelsize=ticklabelsize,
-                legendsize=legendsize)
+                figsize=figsize,
+                axlabelsize=o["fig"]["axlabelsize"],
+                titlesize=o["fig"]["titlesize"],
+                ticklabelsize=o["fig"]["ticklabelsize"],
+                legendsize=o["fig"]["legendsize"],
+                xticks=xticks,
+                xticklabels=xticklabels,
+                )
