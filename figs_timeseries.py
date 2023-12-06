@@ -55,7 +55,7 @@ def get_xticks(yearlist):
     return xticks, xticklabels
 
 
-def read_fig_config(get_xticks):
+def read_fig_config():
     scriptsDir = os.path.dirname(__file__)
     o = configparser.ConfigParser(
         converters={"list": lambda x: [i.strip() for i in x.split(",")]},
@@ -112,7 +112,7 @@ importlib.reload(agu23)
     xticklabels,
     new_colors,
     figsize,
-) = read_fig_config(get_xticks)
+) = read_fig_config()
 this_dir = o["runs"]["this_dir"]
 os.chdir(this_dir)
 
