@@ -237,7 +237,7 @@ def process_and_make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff,
         make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das)
 
 
-def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das_in, title=None, figsize=None, axlabelsize=None, titlesize=None, ticklabelsize=None, legendsize=None, xticks=None, xticklabels=None):
+def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das_in, title=None, figsize=None, axlabelsize=None, titlesize=None, ticklabelsize=None, legendsize=None, xticks=None, xticklabels=None, colors=None):
     # Ensure all DataArrays have the same units
     units = das_in[0].attrs["units"]
     for d, da in enumerate(das_in):
@@ -263,8 +263,9 @@ def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropl
     units = das[0].attrs["units"]
 
     # Get line colors to cycle through
-    prop_cycle = plt.rcParams['axes.prop_cycle']
-    colors = prop_cycle.by_key()['color']
+    if colors is None:
+        prop_cycle = plt.rcParams['axes.prop_cycle']
+        colors = prop_cycle.by_key()['color']
 
     plt.figure(figsize=figsize)
     if rel_diff or abs_diff:
