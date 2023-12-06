@@ -84,30 +84,32 @@ o, expt_list, rolling, title, xticks, xticklabels = read_fig_config(get_xticks)
 this_dir = o["runs"]["this_dir"]
 os.chdir(this_dir)
 
-das = get_das(expt_list,
-              o["var"]["name"],
-              o.getboolean("fig", "cropland_only"),
-              )
+das = get_das(
+    expt_list,
+    o["var"]["name"],
+    o.getboolean("fig", "cropland_only"),
+    )
 
 figsize = (
     o.getfloat("fig", "figsize_x"),
     o.getfloat("fig", "figsize_y"),
 )
-agu23.make_plot(expt_list,
-                o.getboolean("fig", "abs_diff"),
-                o.getboolean("fig", "rel_diff"),
-                o.getboolean("fig", "y2y_diff"),
-                o.getboolean("fig", "do_cumsum"),
-                rolling,
-                o.getboolean("fig", "cropland_only"),
-                o["var"]["name"],
-                das,
-                title=title,
-                figsize=figsize,
-                axlabelsize=o["fig"]["axlabelsize"],
-                titlesize=o["fig"]["titlesize"],
-                ticklabelsize=o["fig"]["ticklabelsize"],
-                legendsize=o["fig"]["legendsize"],
-                xticks=xticks,
-                xticklabels=xticklabels,
-                )
+agu23.make_plot(
+    expt_list,
+    o.getboolean("fig", "abs_diff"),
+    o.getboolean("fig", "rel_diff"),
+    o.getboolean("fig", "y2y_diff"),
+    o.getboolean("fig", "do_cumsum"),
+    rolling,
+    o.getboolean("fig", "cropland_only"),
+    o["var"]["name"],
+    das,
+    title=title,
+    figsize=figsize,
+    axlabelsize=o["fig"]["axlabelsize"],
+    titlesize=o["fig"]["titlesize"],
+    ticklabelsize=o["fig"]["ticklabelsize"],
+    legendsize=o["fig"]["legendsize"],
+    xticks=xticks,
+    xticklabels=xticklabels,
+    )
