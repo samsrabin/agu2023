@@ -42,6 +42,9 @@ def get_das(expt_list, var, cropland_only):
             dict_in = pickle.load(handle)
         da = dict_in[var]
 
+        # Shift 1 year earlier
+        da = agu23.shift_1_year_earlier(da)
+
         # Ignore extra years
         da = da.sel(time=slice("1901-01-01", "2100-12-31"))
 

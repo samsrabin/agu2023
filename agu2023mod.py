@@ -6,6 +6,7 @@ import datetime as dt
 import configparser
 import os
 import sys
+import cftime
 
 def read_config():
     scriptsDir = os.path.dirname(__file__)
@@ -229,7 +230,9 @@ def process_and_make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff,
 
         das = []
         for dse in ds:
-            das.append(get_timeseries_da(dse, cropland_only, var, wtg, inds))
+            da = get_timeseries_da(dse, cropland_only, var, wtg, inds)
+            da = shift_1_year_earlier(da)
+            das.append(da)
 
         make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das)
 
@@ -359,4 +362,16 @@ def modify_timeseries_da(da, do_cumsum, rolling, y2y_diff):
     if y2y_diff:
         da = get_y2y_chg(da)
 
+    return da
+
+
+def shift_1_year_earlier(da):
+    years = [t.year for t in da["time"].values]
+    new_time = [cftime.DatetimeNoLeap(y-1, 1, 1, 0, 0, 0, 0, has_year_zero=True) for y in years]
+    new_time_da = xr.DataArray(
+        data=new_time,
+        attrs=da["time"].attrs,
+        dims=["time"],
+        )
+    da = da.assign_coords(time=new_time_da)
     return da
