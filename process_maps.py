@@ -7,12 +7,14 @@ import glob
 
 # Import supporting module
 import sys
+
 scriptsDir = os.path.dirname(__file__)
 sys.path.append(scriptsDir)
 import agu2023mod as agu23
 
 
 # %% Define things
+
 
 def get_maps_dict(var_list, ds):
     maps_dict = {}
@@ -45,7 +47,7 @@ def get_maps_dict(var_list, ds):
 def read_process_maps_config():
     scriptsDir = os.path.dirname(__file__)
     o = configparser.ConfigParser(
-        converters={'list': lambda x: [i.strip() for i in x.split(',')]},
+        converters={"list": lambda x: [i.strip() for i in x.split(",")]},
     )
     o.read(os.path.join(scriptsDir, "process_maps.ini"))
     os.chdir(o["DEFAULT"]["this_dir"])

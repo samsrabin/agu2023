@@ -8,10 +8,11 @@ import os
 import sys
 import cftime
 
+
 def read_config():
     scriptsDir = os.path.dirname(__file__)
     config = configparser.ConfigParser(
-        converters={'list': lambda x: [i.strip() for i in x.split(',')]}
+        converters={"list": lambda x: [i.strip() for i in x.split(",")]}
     )
     config.read(os.path.join(scriptsDir, "agu2023.ini"))
     return config
@@ -85,7 +86,7 @@ def get_total_value(dse, da, cropland_only):
         new_units = old_units.replace("/m^2", "")
     else:
         new_units = old_units + " m^2"
-    area_da = dse["area"]*1e6
+    area_da = dse["area"] * 1e6
     if cropland_only:
         area_da = area_da * dse["frac_crop"]
     da *= area_da
@@ -104,12 +105,12 @@ def convert_units(dse, da):
         da = da * 1e-15
 
     if "/s" in units:
-        t0 = dse["time_bounds"].values[1,0]
-        t1 = dse["time_bounds"].values[1,1]
+        t0 = dse["time_bounds"].values[1, 0]
+        t1 = dse["time_bounds"].values[1, 1]
         tdelta = t1 - t0
         if tdelta == dt.timedelta(days=365):
             units = units.replace("/s", "/yr")
-            da = da * 365*24*60*60
+            da = da * 365 * 24 * 60 * 60
         else:
             raise RuntimeError(f"Unrecognized time delta: {tdelta}")
 
@@ -120,8 +121,8 @@ def convert_units(dse, da):
 
 def get_y2y_chg(da):
     attrs = da.attrs
-    da1 = da.isel(time=slice(1,None))
-    da0 = da.isel(time=slice(None,-1))
+    da1 = da.isel(time=slice(1, None))
+    da0 = da.isel(time=slice(None, -1))
     da0 = da0.assign_coords({"time": da1["time"]})
     da = da1 - da0
     da.attrs = attrs
@@ -148,7 +149,7 @@ def get_wtg_inds(cropland_only, var, ds):
             inds = "cols1d_gi"
     else:
         raise RuntimeError(f"Unknown wtg/inds for dims {dims}")
-    return wtg,inds
+    return wtg, inds
 
 
 # Get fraction of each gridcell that's cropland
@@ -179,33 +180,29 @@ def get_weighted(dse, cropland_only, var, wtg, inds):
         wts_grouped = dset[wtg].groupby(groupby_var_da)
         wtsum = wts_grouped.sum(skipna=True)
         if np.abs(np.nanmax(wtsum - 1)) > 1e-9:
-            raise RuntimeError(f"Weights don't add to 1; range {np.nanmin(wtsum)} to {np.nanmax(wtsum)}")
-        break # Just check the first timestep
-
+            raise RuntimeError(
+                f"Weights don't add to 1; range {np.nanmin(wtsum)} to {np.nanmax(wtsum)}"
+            )
+        break  # Just check the first timestep
 
     # Calculate weighted mean
     tmp = np.full((dse.dims["time"], dse.dims["gridcell"]), np.nan)
     for t in np.arange(dse.dims["time"]):
         dset = dse.isel(time=t, drop=True)
         dat_grouped = (dset[var] * dset[wtg]).groupby(dset[inds])
-        dat = dat_grouped.sum(skipna=True) # BOTTLENECK
-        tmp[t,:] = dat.values
-    new_coords = {"time": dse["time"],
-                  "gridcell": dse["gridcell"]
-                 }
+        dat = dat_grouped.sum(skipna=True)  # BOTTLENECK
+        tmp[t, :] = dat.values
+    new_coords = {"time": dse["time"], "gridcell": dse["gridcell"]}
     da = xr.DataArray(
-        data=tmp,
-        coords=new_coords,
-        dims=new_coords,
-        attrs=dse[var].attrs
+        data=tmp, coords=new_coords, dims=new_coords, attrs=dse[var].attrs
     )
 
     return dse, da
 
 
-
-
-def process_and_make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_only, rolling=None):
+def process_and_make_plot(
+    expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_only, rolling=None
+):
 
     if isinstance(var_list, str):
         var_list = [var_list]
@@ -234,10 +231,39 @@ def process_and_make_plot(expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff,
             da = shift_1_year_earlier(da)
             das.append(da)
 
-        make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das)
+        make_plot(
+            expt_list,
+            abs_diff,
+            rel_diff,
+            y2y_diff,
+            do_cumsum,
+            rolling,
+            cropland_only,
+            var,
+            das,
+        )
 
 
-def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropland_only, var, das_in, title=None, figsize=None, axlabelsize=None, titlesize=None, ticklabelsize=None, legendsize=None, xticks=None, xticklabels=None, colors=None):
+def make_plot(
+    expt_list,
+    abs_diff,
+    rel_diff,
+    y2y_diff,
+    do_cumsum,
+    rolling,
+    cropland_only,
+    var,
+    das_in,
+    title=None,
+    figsize=None,
+    axlabelsize=None,
+    titlesize=None,
+    ticklabelsize=None,
+    legendsize=None,
+    xticks=None,
+    xticklabels=None,
+    colors=None,
+):
     # Ensure all DataArrays have the same units
     units = das_in[0].attrs["units"]
     for d, da in enumerate(das_in):
@@ -253,9 +279,9 @@ def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropl
         if "from" in expt:
             hist_expt_name = get_hist_expt_name(expt)
             da0 = das_in[expt_list.index(hist_expt_name)]
-            da2 = xr.concat((da0.sel(time=slice("1901-01-01", "2014-12-31")),
-                             da),
-                           dim="time")
+            da2 = xr.concat(
+                (da0.sel(time=slice("1901-01-01", "2014-12-31")), da), dim="time"
+            )
             da3 = modify_timeseries_da(da2, do_cumsum, rolling, y2y_diff)
             das.append(da3.sel(time=slice("2015-01-01", "2100-12-31")))
         else:
@@ -264,8 +290,8 @@ def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropl
 
     # Get line colors to cycle through
     if colors is None:
-        prop_cycle = plt.rcParams['axes.prop_cycle']
-        colors = prop_cycle.by_key()['color']
+        prop_cycle = plt.rcParams["axes.prop_cycle"]
+        colors = prop_cycle.by_key()["color"]
 
     plt.figure(figsize=figsize)
     if rel_diff or abs_diff:
@@ -298,19 +324,15 @@ def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropl
 
     if rel_diff:
         plt.axhline(y=1, color="k", linestyle="--")
-        plt.ylabel(f"Relative to {expt_list[0]}",
-                   fontsize=axlabelsize)
+        plt.ylabel(f"Relative to {expt_list[0]}", fontsize=axlabelsize)
     elif y2y_diff or abs_diff:
         plt.axhline(y=0, color="k", linestyle="--")
         if abs_diff:
-            plt.ylabel(f"Relative to {expt_list[0]} ({units})",
-                       fontsize=axlabelsize)
+            plt.ylabel(f"Relative to {expt_list[0]} ({units})", fontsize=axlabelsize)
         else:
-            plt.ylabel(units,
-                       fontsize=axlabelsize)
+            plt.ylabel(units, fontsize=axlabelsize)
     else:
-        plt.ylabel(units,
-                   fontsize=axlabelsize)
+        plt.ylabel(units, fontsize=axlabelsize)
     plt.xlabel("Year", fontsize=axlabelsize)
     plt.tick_params(labelsize=ticklabelsize)
 
@@ -343,7 +365,7 @@ def get_maps_da(dse, cropland_only, var, wtg, inds):
 def get_timeseries_da(dse, cropland_only, var, wtg, inds):
     da = get_maps_da(dse, cropland_only, var, wtg, inds)
 
-    return(da.sum(dim=["lat","lon"], keep_attrs=True))
+    return da.sum(dim=["lat", "lon"], keep_attrs=True)
 
 
 def modify_timeseries_da(da, do_cumsum, rolling, y2y_diff):
@@ -367,12 +389,15 @@ def modify_timeseries_da(da, do_cumsum, rolling, y2y_diff):
 
 def shift_1_year_earlier(da):
     years = [t.year for t in da["time"].values]
-    new_time = [cftime.DatetimeNoLeap(y-1, 1, 1, 0, 0, 0, 0, has_year_zero=True) for y in years]
+    new_time = [
+        cftime.DatetimeNoLeap(y - 1, 1, 1, 0, 0, 0, 0, has_year_zero=True)
+        for y in years
+    ]
     new_time_da = xr.DataArray(
         data=new_time,
         attrs=da["time"].attrs,
         dims=["time"],
-        )
+    )
     da = da.assign_coords(time=new_time_da)
     return da
 
@@ -385,6 +410,6 @@ def get_hist_expt_name(expt_name):
     elif "fromHi" in expt_name:
         hist_expt_name = "Thi_Rhi"
     else:
-        raise RuntimeError(f"Unrecognized \"from\" in expt_name: {expt_name}")
+        raise RuntimeError(f'Unrecognized "from" in expt_name: {expt_name}')
 
     return hist_expt_name

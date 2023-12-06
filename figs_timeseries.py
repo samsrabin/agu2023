@@ -9,12 +9,14 @@ import re
 
 # Import supporting module
 import sys
+
 scriptsDir = os.path.dirname(__file__)
 sys.path.append(scriptsDir)
 import agu2023mod as agu23
 
 
 # %% Define
+
 
 def get_das(expt_list, var, cropland_only):
     if cropland_only:
@@ -50,15 +52,15 @@ def get_xticks(yearlist):
     for y in yearlist:
         xticks.append(cftime.DatetimeNoLeap(y, 1, 1, 0, 0, 0, 0, has_year_zero=True))
         xticklabels.append(y)
-    return xticks,xticklabels
+    return xticks, xticklabels
 
 
 def read_fig_config(get_xticks):
     scriptsDir = os.path.dirname(__file__)
     o = configparser.ConfigParser(
-    converters={'list': lambda x: [i.strip() for i in x.split(',')]},
-    allow_no_value=True,
-)
+        converters={"list": lambda x: [i.strip() for i in x.split(",")]},
+        allow_no_value=True,
+    )
     o.read(os.path.join(scriptsDir, "figs_timeseries.ini"))
     expt_list = o.getlist("runs", "expt_list")
     fig_keys = [k for k in o["fig"].keys()]
@@ -67,7 +69,7 @@ def read_fig_config(get_xticks):
     else:
         rolling = o.getint("fig", "rolling")
     var_keys = [k for k in o["var"].keys()]
-    if "title" not in var_keys or o["var"]["title"]=="":
+    if "title" not in var_keys or o["var"]["title"] == "":
         title = None
     else:
         title = o["var"]["title"]
@@ -98,9 +100,19 @@ def get_colors(expt_list, colors):
 # %% Make plot
 
 import importlib
+
 importlib.reload(agu23)
 
-o, expt_list, rolling, title, xticks, xticklabels, new_colors, figsize = read_fig_config(get_xticks)
+(
+    o,
+    expt_list,
+    rolling,
+    title,
+    xticks,
+    xticklabels,
+    new_colors,
+    figsize,
+) = read_fig_config(get_xticks)
 this_dir = o["runs"]["this_dir"]
 os.chdir(this_dir)
 
@@ -108,7 +120,7 @@ das = get_das(
     expt_list,
     o["var"]["name"],
     o.getboolean("fig", "cropland_only"),
-    )
+)
 
 agu23.make_plot(
     expt_list,
@@ -129,4 +141,4 @@ agu23.make_plot(
     xticks=xticks,
     xticklabels=xticklabels,
     colors=new_colors,
-    )
+)

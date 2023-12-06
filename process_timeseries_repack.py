@@ -6,6 +6,7 @@ import glob
 
 # Import supporting module
 import sys
+
 scriptsDir = os.path.dirname(__file__)
 sys.path.append(scriptsDir)
 import agu2023mod as agu23
@@ -15,8 +16,8 @@ config = agu23.read_config()
 for option, value in config.items("DEFAULT"):
     print(f"DEFAULT: {option} = {value}")
 for section in config.sections():
-  for option in config[section]:
-    print(f"{section}: {option} = {config[section][option]}")
+    for option in config[section]:
+        print(f"{section}: {option} = {config[section][option]}")
 this_dir = config["runs"]["this_dir"]
 os.chdir(this_dir)
 expt_list = config.getlist("runs", "expt_list")
@@ -35,7 +36,7 @@ for expt_name in expt_list:
     # Combine
     dict_out = {}
     for f in file_list:
-        with open(f, 'rb') as handle:
+        with open(f, "rb") as handle:
             dict_in = pickle.load(handle)
         dict_out.update(dict_in)
 

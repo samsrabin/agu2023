@@ -5,6 +5,7 @@ import pickle
 
 # Import supporting module
 import sys
+
 scriptsDir = os.path.dirname(__file__)
 sys.path.append(scriptsDir)
 import agu2023mod as agu23
@@ -14,14 +15,15 @@ config = agu23.read_config()
 for option, value in config.items("DEFAULT"):
     print(f"DEFAULT: {option} = {value}")
 for section in config.sections():
-  for option in config[section]:
-    print(f"{section}: {option} = {config[section][option]}")
+    for option in config[section]:
+        print(f"{section}: {option} = {config[section][option]}")
 this_dir = config["runs"]["this_dir"]
 os.chdir(this_dir)
 expt_list = config.getlist("runs", "expt_list")
 
 
 # %% Define things
+
 
 def get_ts_dict(var_list, ds):
     ts_dict = {}
@@ -51,11 +53,21 @@ def get_ts_dict(var_list, ds):
 
     return ts_dict
 
+
 var_list_list = [
     ["SOILC_HR", "NEP", "NEE", "NBP"],
     ["GRAINC_TO_FOOD_ANN"],
-    ["TOTLITC", "TOTLITC_1m", "TOTLITN", "TOTLITN_1m", "TOTSOMC", "TOTSOMC_1m", "TOTSOMN", "TOTSOMN_1m"],
-    ["CROPPROD1C", "CROPPROD1C_LOSS"]
+    [
+        "TOTLITC",
+        "TOTLITC_1m",
+        "TOTLITN",
+        "TOTLITN_1m",
+        "TOTSOMC",
+        "TOTSOMC_1m",
+        "TOTSOMN",
+        "TOTSOMN_1m",
+    ],
+    ["CROPPROD1C", "CROPPROD1C_LOSS"],
 ]
 
 
