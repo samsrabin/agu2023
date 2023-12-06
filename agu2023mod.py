@@ -319,7 +319,7 @@ def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropl
     plt.show()
 
 
-def get_timeseries_da(dse, cropland_only, var, wtg, inds):
+def get_maps_da(dse, cropland_only, var, wtg, inds):
     if wtg is not None:
         dse, da = get_weighted(dse, cropland_only, var, wtg, inds)
     else:
@@ -329,9 +329,6 @@ def get_timeseries_da(dse, cropland_only, var, wtg, inds):
     # Calculate total value (instead of per-area)
     da = get_total_value(dse, da, cropland_only)
 
-    # Calculate global sum
-    da = da.sum(dim=["lat","lon"], keep_attrs=True)
-
     # Convert units
     da = convert_units(dse, da)
 
@@ -340,6 +337,12 @@ def get_timeseries_da(dse, cropland_only, var, wtg, inds):
     da = da.isel(time=slice(1, Ntime))
 
     return da
+
+
+def get_timeseries_da(dse, cropland_only, var, wtg, inds):
+    da = get_maps_da(dse, cropland_only, var, wtg, inds)
+
+    return(da.sum(dim=["lat","lon"], keep_attrs=True))
 
 
 def modify_timeseries_da(da, do_cumsum, rolling, y2y_diff):
