@@ -253,6 +253,8 @@ def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropl
         if "from" in expt:
             if "fromOff" in expt:
                 da0 = das_in[expt_list.index("Toff_Roff")]
+            elif "fromHiLo" in expt:
+                da0 = das_in[expt_list.index("Thi_Rlo")]
             elif "fromHi" in expt:
                 da0 = das_in[expt_list.index("Thi_Rhi")]
             else:
@@ -284,6 +286,8 @@ def make_plot(expt_list, abs_diff, rel_diff, y2y_diff, do_cumsum, rolling, cropl
             if "from" in expt_name:
                 if "fromOff" in expt_name:
                     hist_expt_name = "Toff_Roff"
+                elif "fromHiLo" in expt_name:
+                    hist_expt_name = "Thi_Rlo"
                 elif "fromHi" in expt_name:
                     hist_expt_name = "Thi_Rhi"
                 else:
