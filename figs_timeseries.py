@@ -6,6 +6,7 @@ import glob
 import configparser
 import cftime
 import re
+import argparse
 
 # Import supporting module
 import sys
@@ -55,13 +56,13 @@ def get_xticks(yearlist):
     return xticks, xticklabels
 
 
-def read_fig_config():
+def read_fig_config(ini_file):
     scriptsDir = os.path.dirname(__file__)
     o = configparser.ConfigParser(
         converters={"list": lambda x: [i.strip() for i in x.split(",")]},
         allow_no_value=True,
     )
-    o.read(os.path.join(scriptsDir, "figs_timeseries.ini"))
+    o.read(os.path.join(scriptsDir, ini_file))
     expt_list = o.getlist("runs", "expt_list")
     fig_keys = [k for k in o["fig"].keys()]
     if "rolling" not in fig_keys:
@@ -99,46 +100,53 @@ def get_colors(expt_list, colors):
 
 # %% Make plot
 
-import importlib
 
-importlib.reload(agu23)
+def main(ini_file):
+    (
+        o,
+        expt_list,
+        rolling,
+        title,
+        xticks,
+        xticklabels,
+        new_colors,
+        figsize,
+    ) = read_fig_config(ini_file)
+    this_dir = o["runs"]["this_dir"]
+    os.chdir(this_dir)
 
-(
-    o,
-    expt_list,
-    rolling,
-    title,
-    xticks,
-    xticklabels,
-    new_colors,
-    figsize,
-) = read_fig_config()
-this_dir = o["runs"]["this_dir"]
-os.chdir(this_dir)
+    das = get_das(
+        expt_list,
+        o["var"]["name"],
+        o.getboolean("fig", "cropland_only"),
+    )
 
-das = get_das(
-    expt_list,
-    o["var"]["name"],
-    o.getboolean("fig", "cropland_only"),
-)
+    agu23.make_plot(
+        expt_list,
+        o.getboolean("fig", "abs_diff"),
+        o.getboolean("fig", "rel_diff"),
+        o.getboolean("fig", "y2y_diff"),
+        o.getboolean("fig", "do_cumsum"),
+        rolling,
+        o.getboolean("fig", "cropland_only"),
+        o["var"]["name"],
+        das,
+        title=title,
+        figsize=figsize,
+        axlabelsize=o["fig"]["axlabelsize"],
+        titlesize=o["fig"]["titlesize"],
+        ticklabelsize=o["fig"]["ticklabelsize"],
+        legendsize=o["fig"]["legendsize"],
+        xticks=xticks,
+        xticklabels=xticklabels,
+        colors=new_colors,
+    )
 
-agu23.make_plot(
-    expt_list,
-    o.getboolean("fig", "abs_diff"),
-    o.getboolean("fig", "rel_diff"),
-    o.getboolean("fig", "y2y_diff"),
-    o.getboolean("fig", "do_cumsum"),
-    rolling,
-    o.getboolean("fig", "cropland_only"),
-    o["var"]["name"],
-    das,
-    title=title,
-    figsize=figsize,
-    axlabelsize=o["fig"]["axlabelsize"],
-    titlesize=o["fig"]["titlesize"],
-    ticklabelsize=o["fig"]["ticklabelsize"],
-    legendsize=o["fig"]["legendsize"],
-    xticks=xticks,
-    xticklabels=xticklabels,
-    colors=new_colors,
-)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("ini_file", type=str, nargs=1)
+    args = parser.parse_args()
+    main(args.ini_file[0])
+
+# main("figs_timeseries.ini")
