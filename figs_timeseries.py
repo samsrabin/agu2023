@@ -5,6 +5,7 @@ import pickle
 import glob
 import configparser
 import cftime
+import re
 
 # Import supporting module
 import sys
@@ -72,7 +73,21 @@ def read_fig_config(get_xticks):
         title = o["var"]["title"]
 
     xticks, xticklabels = get_xticks([int(x) for x in o.getlist("fig", "xticks")])
-    return o, expt_list, rolling, title, xticks, xticklabels
+
+    new_colors = get_colors(expt_list, o.getlist("fig", "colors"))
+
+    return o, expt_list, rolling, title, xticks, xticklabels, new_colors
+
+
+def get_colors(expt_list, colors):
+    new_colors = []
+    for expt_name in expt_list:
+        is_original_clm = re.match(".*_fromOff", expt_name)
+        if is_original_clm:
+            new_colors.append("#000000")
+        else:
+            new_colors.append("#" + colors.pop(0))
+    return new_colors
 
 
 # %% Make plot
@@ -80,7 +95,7 @@ def read_fig_config(get_xticks):
 import importlib
 importlib.reload(agu23)
 
-o, expt_list, rolling, title, xticks, xticklabels = read_fig_config(get_xticks)
+o, expt_list, rolling, title, xticks, xticklabels, new_colors = read_fig_config(get_xticks)
 this_dir = o["runs"]["this_dir"]
 os.chdir(this_dir)
 
@@ -89,11 +104,11 @@ das = get_das(
     o["var"]["name"],
     o.getboolean("fig", "cropland_only"),
     )
-
 figsize = (
     o.getfloat("fig", "figsize_x"),
     o.getfloat("fig", "figsize_y"),
 )
+
 agu23.make_plot(
     expt_list,
     o.getboolean("fig", "abs_diff"),
@@ -112,4 +127,5 @@ agu23.make_plot(
     legendsize=o["fig"]["legendsize"],
     xticks=xticks,
     xticklabels=xticklabels,
+    colors=new_colors,
     )
