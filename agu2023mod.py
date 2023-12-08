@@ -271,6 +271,7 @@ def make_plot(
     xticklabels=None,
     colors=None,
     file_out=None,
+    show=False,
 ):
     # Ensure all DataArrays have the same units
     units = das_in[0].attrs["units"]
@@ -356,7 +357,8 @@ def make_plot(
                 print(f"Saving {file_out}")
             plt.savefig(file_out)
 
-    plt.show()
+    if show:
+        plt.show()
 
 
 def get_maps_da(dse, cropland_only, var, wtg, inds):

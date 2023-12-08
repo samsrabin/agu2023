@@ -161,6 +161,7 @@ def main(ini_file):
         xticklabels=xticklabels,
         colors=new_colors,
         file_out=file_out,
+        show=False,
     )
 
 
