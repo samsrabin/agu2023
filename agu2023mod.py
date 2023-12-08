@@ -550,10 +550,11 @@ def get_hist_expt_name(expt_name):
 
 def confirm(message):
     while True:
-        answer = input(message + " (y/N) ")
-        answer = answer.lower()
-        if answer == "y":
-            return True
-        elif answer == "n" or answer is "":
-            return False
-        print("Please answer with 'y' for yes or 'n' for no.")
+      answer = input(message + " (y/N) ")
+      answer = answer.lower()
+      if answer == "y":
+        return True
+      elif answer == "n" or answer == "":
+        return False
+      print("Please answer with 'y' for yes or 'n' for no.")
+
