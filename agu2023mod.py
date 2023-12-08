@@ -270,6 +270,7 @@ def make_plot(
     xticks=None,
     xticklabels=None,
     colors=None,
+    file_out=None,
 ):
     # Ensure all DataArrays have the same units
     units = das_in[0].attrs["units"]
@@ -345,6 +346,15 @@ def make_plot(
 
     if xticks is not None:
         plt.xticks(xticks, xticklabels)
+
+    # Save, if doing so
+    if file_out is not None:
+        if os.path.exists(file_out) and not confirm(f"{file_out} exists. Overwrite?"):
+            print("Skipping figure save.")
+        else:
+            if not os.path.exists(file_out):
+                print(f"Saving {file_out}")
+            plt.savefig(file_out)
 
     plt.show()
 
@@ -428,3 +438,13 @@ def get_hist_expt_name(expt_name):
         raise RuntimeError(f'Unrecognized "from" in expt_name: {expt_name}')
 
     return hist_expt_name
+
+def confirm(message):
+  while True:
+    answer = input(message + " (y/N) ")
+    answer = answer.lower()
+    if answer == "y":
+      return True
+    elif answer == "n" or answer is "":
+      return False
+    print("Please answer with 'y' for yes or 'n' for no.")

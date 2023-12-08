@@ -94,7 +94,14 @@ def read_fig_config(ini_file):
         o.getfloat("fig", "figsize_y"),
     )
 
-    return o, expt_list, rolling, title, xticks, xticklabels, new_colors, figsize
+    if "fig_dir" not in o["DEFAULT"].keys():
+        o["DEFAULT"]["fig_dir"] = o["DEFAULT"]["this_dir"]
+    var = o["DEFAULT"]["name"]
+    y1 = o.getint("fig", "y1")
+    yN = o.getint("fig", "yN")
+    file_out = os.path.join(o["DEFAULT"]["fig_dir"], f"ts_{var}_{y1}-{yN}.pdf")
+
+    return o, expt_list, rolling, title, xticks, xticklabels, new_colors, figsize, file_out
 
 
 def get_colors(expt_list, colors):
@@ -121,6 +128,7 @@ def main(ini_file):
         xticklabels,
         new_colors,
         figsize,
+        file_out,
     ) = read_fig_config(ini_file)
     this_dir = o["DEFAULT"]["this_dir"]
     os.chdir(this_dir)
@@ -152,6 +160,7 @@ def main(ini_file):
         xticks=xticks,
         xticklabels=xticklabels,
         colors=new_colors,
+        file_out=file_out,
     )
 
 
