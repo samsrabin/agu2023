@@ -96,10 +96,8 @@ def read_fig_config(ini_file):
 
     if "fig_dir" not in o["DEFAULT"].keys():
         o["DEFAULT"]["fig_dir"] = o["DEFAULT"]["this_dir"]
-    var = o["DEFAULT"]["name"]
-    y1 = o.getint("fig", "y1")
-    yN = o.getint("fig", "yN")
-    file_out = os.path.join(o["DEFAULT"]["fig_dir"], f"ts_{var}_{y1}-{yN}.pdf")
+    basename_noext, _ = os.path.splitext(os.path.basename(ini_file))
+    file_out = os.path.join(o["DEFAULT"]["fig_dir"], basename_noext + ".pdf")
 
     return o, expt_list, rolling, title, xticks, xticklabels, new_colors, figsize, file_out
 
