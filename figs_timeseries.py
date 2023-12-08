@@ -73,17 +73,17 @@ def read_fig_config(ini_file):
         allow_no_value=True,
     )
     o.read(os.path.join(scriptsDir, ini_file))
-    expt_list = o.getlist("runs", "expt_list")
+    expt_list = o.getlist("DEFAULT", "expt_list")
     fig_keys = [k for k in o["fig"].keys()]
     if "rolling" not in fig_keys:
         rolling = None
     else:
         rolling = o.getint("fig", "rolling")
-    var_keys = [k for k in o["var"].keys()]
-    if "title" not in var_keys or o["var"]["title"] == "":
+    var_keys = [k for k in o["DEFAULT"].keys()]
+    if "title" not in var_keys or o["DEFAULT"]["title"] == "":
         title = None
     else:
-        title = o["var"]["title"]
+        title = o["DEFAULT"]["title"]
 
     xticks, xticklabels = get_xticks([int(x) for x in o.getlist("fig", "xticks")])
 
@@ -122,12 +122,12 @@ def main(ini_file):
         new_colors,
         figsize,
     ) = read_fig_config(ini_file)
-    this_dir = o["runs"]["this_dir"]
+    this_dir = o["DEFAULT"]["this_dir"]
     os.chdir(this_dir)
 
     das = get_das(
         expt_list,
-        o["var"]["name"],
+        o["DEFAULT"]["name"],
         o.getboolean("fig", "cropland_only"),
         o.getint("fig", "y1"),
         o.getint("fig", "yN"),
@@ -141,7 +141,7 @@ def main(ini_file):
         o.getboolean("fig", "do_cumsum"),
         rolling,
         o.getboolean("fig", "cropland_only"),
-        o["var"]["name"],
+        o["DEFAULT"]["name"],
         das,
         title=title,
         figsize=figsize,
