@@ -46,6 +46,7 @@ def get_maps_dict(var_list, ds):
 
 def read_process_maps_config():
     scriptsDir = os.path.dirname(__file__)
+    scriptsDir = os.path.abspath(scriptsDir)
     o = configparser.ConfigParser(
         converters={"list": lambda x: [i.strip() for i in x.split(",")]},
     )
@@ -55,7 +56,7 @@ def read_process_maps_config():
 
     file_list = glob.glob(os.path.join(scriptsDir, "process_maps_h*.ini"))
     file_list.sort()
-    # Not robust to skipping h files
+    # Loop through h files; requires that no h# be skipped
     var_list_list = []
     for file in file_list:
         var_list_list.append
