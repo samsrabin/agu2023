@@ -26,21 +26,28 @@ def get_das(expt_list, var, cropland_only, y1, yN):
     das = []
     for expt in expt_list:
         pattern = f"*{expt}.clm2.{pattern_yearrange}.nc.maps.pickle"
-        file_in = glob.glob(pattern)
-        if len(file_in) > 1:
-            raise RuntimeError(f"Found {len(file_in)} matches: {file_in}")
-        elif len(file_in) == 0:
+        file_list = glob.glob(pattern)
+        file_list.sort()
+        if len(file_list) == 0:
             raise RuntimeError(f"Found 0 matches for {pattern}")
 
-        with open(file_in[0], "rb") as handle:
-            dict_in = pickle.load(handle)
-        da = dict_in[var]
+        da = None
+        for file_in in file_list:
+            with open(file_in, "rb") as handle:
+                dict_in = pickle.load(handle)
+            da_tmp = dict_in[var]
 
-        # Shift 1 year earlier
-        da = agu23.shift_1_year_earlier(da)
+            # Shift 1 year earlier
+            da_tmp = agu23.shift_1_year_earlier(da_tmp)
 
-        # Ignore extra years
-        da = da.sel(time=slice(f"{y1}-01-01", f"{yN}-12-31"))
+            # Ignore extra years
+            if da is None:
+                da = da_tmp.sel(time=slice(f"{y1}-01-01", f"{yN}-12-31"))
+            else:
+                # Assuming files are in increasing chronological order
+                yN_prev = da["time"].values[-1].year
+                da_tmp = da_tmp.sel(time=slice(f"{yN_prev}-01-01", f"{yN}-12-31"))
+                da = xr.concat((da, da_tmp), dim="time")
 
         # Get global sum
         da = da.sum(dim=["lon", "lat"], keep_attrs=True)
@@ -154,4 +161,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     main(args.ini_file[0])
 
-# main("figs_timeseries.ini")
+# main("ini/test.ini")
