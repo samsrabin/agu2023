@@ -25,7 +25,7 @@ def get_das(expt_list, var, cropland_only, y1, yN):
     pattern_yearrange = "[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]"
     das = []
     for expt in expt_list:
-        pattern = f"*{expt}.clm2.{pattern_yearrange}.pickle"
+        pattern = f"*{expt}.clm2.{pattern_yearrange}.nc.maps.pickle"
         file_in = glob.glob(pattern)
         if len(file_in) > 1:
             raise RuntimeError(f"Found {len(file_in)} matches: {file_in}")
@@ -41,6 +41,9 @@ def get_das(expt_list, var, cropland_only, y1, yN):
 
         # Ignore extra years
         da = da.sel(time=slice(f"{y1}-01-01", f"{yN}-12-31"))
+
+        # Get global sum
+        da = da.sum(dim=["lon", "lat"], keep_attrs=True)
 
         das.append(da)
 
