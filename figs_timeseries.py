@@ -19,7 +19,7 @@ import agu2023mod as agu23
 # %% Define
 
 
-def get_das(expt_list, var, cropland_only):
+def get_das(expt_list, var, cropland_only, y1, yN):
     if cropland_only:
         var += "_croponly"
     pattern_yearrange = "[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]"
@@ -40,7 +40,7 @@ def get_das(expt_list, var, cropland_only):
         da = agu23.shift_1_year_earlier(da)
 
         # Ignore extra years
-        da = da.sel(time=slice("1901-01-01", "2100-12-31"))
+        da = da.sel(time=slice(f"{y1}-01-01", f"{yN}-12-31"))
 
         das.append(da)
 
@@ -119,6 +119,8 @@ def main(ini_file):
         expt_list,
         o["var"]["name"],
         o.getboolean("fig", "cropland_only"),
+        o.getint("fig", "y1"),
+        o.getint("fig", "yN"),
     )
 
     agu23.make_plot(
