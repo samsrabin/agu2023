@@ -36,10 +36,13 @@ def get_maps_dict(var_list, ds):
                     raise
 
             print(f"    {var}, cropland_only=={cropland_only}")
-            da = agu23.get_maps_da(ds, cropland_only, var, wtg, inds)
+            da_perarea, da = agu23.get_maps_da(ds, cropland_only, var, wtg, inds)
+
+            da_perarea.name = var_ts + "_perarea"
+            maps_dict[da_perarea.name] = da_perarea
 
             da.name = var_ts
-            maps_dict[var_ts] = da
+            maps_dict[da.name] = da
 
     return maps_dict
 

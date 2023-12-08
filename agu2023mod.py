@@ -76,12 +76,14 @@ def get_only_cropland2(dse, wtg):
     dse[wtg] = wtg_da
     return dse
 
+def grid_da(ds, da):
+    ds["tmp"] = da
+    da = utils.grid_one_variable(ds, "tmp")
+    return da
 
 # Calculate total value (instead of per-area)
-def get_total_value(dse, da, cropland_only):
-    dse["tmp"] = da
-    da = utils.grid_one_variable(dse, "tmp")
-    old_units = da.attrs["units"]
+def get_total_value(dse, da_in, cropland_only):
+    old_units = da_in.attrs["units"]
     if "/m^2" in old_units:
         new_units = old_units.replace("/m^2", "")
     else:
@@ -89,7 +91,7 @@ def get_total_value(dse, da, cropland_only):
     area_da = dse["area"] * 1e6
     if cropland_only:
         area_da = area_da * dse["frac_crop"]
-    da *= area_da
+    da = da_in * area_da
     da.attrs["units"] = new_units
 
     return da
@@ -98,6 +100,11 @@ def get_total_value(dse, da, cropland_only):
 # Convert units
 def convert_units(dse, da):
     units = da.attrs["units"]
+
+    if "gC/m^2" in units or "gN/m^2" in units:
+        units = units.replace("gC/m^2", "tC/ha")
+        units = units.replace("gN/m^2", "tC/ha")
+        da = da * 1e-6 * 1e4
 
     if "gC" in units or "gN" in units:
         units = units.replace("gC", "PgC")
@@ -344,26 +351,34 @@ def make_plot(
 
 def get_maps_da(dse, cropland_only, var, wtg, inds):
     if wtg is not None:
-        dse, da = get_weighted(dse, cropland_only, var, wtg, inds)
+        dse, da_perarea = get_weighted(dse, cropland_only, var, wtg, inds)
     else:
         dse = get_frac_crop(dse)
-        da = dse[var]
+        da_perarea = dse[var]
+
+    # Grid
+    da_perarea = grid_da(dse, da_perarea)
 
     # Calculate total value (instead of per-area)
-    da = get_total_value(dse, da, cropland_only)
+    units = da_perarea.attrs['units']
+    da = get_total_value(dse, da_perarea, cropland_only)
+    if units != da_perarea.attrs['units']:
+        raise RuntimeError("???")
 
     # Convert units
+    da_perarea = convert_units(dse, da_perarea)
     da = convert_units(dse, da)
 
     # Ignore first time step, which seems to be garbage for NBP etc.
     Ntime = dse.dims["time"]
+    da_perarea = da_perarea.isel(time=slice(1, Ntime))
     da = da.isel(time=slice(1, Ntime))
 
-    return da
+    return da_perarea, da
 
 
 def get_timeseries_da(dse, cropland_only, var, wtg, inds):
-    da = get_maps_da(dse, cropland_only, var, wtg, inds)
+    _, da = get_maps_da(dse, cropland_only, var, wtg, inds)
 
     return da.sum(dim=["lat", "lon"], keep_attrs=True)
 
