@@ -90,7 +90,7 @@ def read_fig_config(ini_file):
 def get_colors(expt_list, colors):
     new_colors = []
     for expt_name in expt_list:
-        is_original_clm = re.match(".*_fromOff", expt_name)
+        is_original_clm = re.match(".*Toff_Roff", expt_name)
         if is_original_clm:
             new_colors.append("#000000")
         else:
