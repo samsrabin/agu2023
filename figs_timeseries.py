@@ -25,7 +25,7 @@ def get_das(expt_list, var, cropland_only, y1, yN):
     pattern_yearrange = "[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]"
     das = []
     for expt in expt_list:
-        pattern = f"*{expt}.clm2.{pattern_yearrange}.nc.maps.pickle"
+        pattern = f"*{expt}_[12]*.clm2.{pattern_yearrange}.nc.maps.pickle"
         file_list = glob.glob(pattern)
         file_list.sort()
         if len(file_list) == 0:
