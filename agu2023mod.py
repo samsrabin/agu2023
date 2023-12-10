@@ -329,6 +329,9 @@ def make_plot(
         title = var
     if cropland_only:
         title += " (cropland only)"
+    if do_cumsum:
+        title = "Cumulative " + title
+        units = units.replace(" (cumulative)", "")
     plt.title(title, fontsize=titlesize)
 
     if rel_diff:
