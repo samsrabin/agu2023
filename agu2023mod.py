@@ -270,6 +270,7 @@ def make_plot(
     xticks=None,
     xticklabels=None,
     colors=None,
+    styles=None,
     file_out=None,
     show=False,
 ):
@@ -297,10 +298,13 @@ def make_plot(
             das.append(modify_timeseries_da(da, do_cumsum, rolling, y2y_diff))
     units = das[0].attrs["units"]
 
-    # Get line colors to cycle through
+    # Get styles to cycle through
     if colors is None:
         prop_cycle = plt.rcParams["axes.prop_cycle"]
         colors = prop_cycle.by_key()["color"]
+    if styles is None:
+        styles = "-" * len(expt_list)
+    linewidth = 2
 
     plt.figure(figsize=figsize)
     if rel_diff or abs_diff:
@@ -309,7 +313,7 @@ def make_plot(
                 da = das[e] / das[0]
             elif abs_diff:
                 da = das[e] - das[0]
-            da.plot(color=colors[e])
+            da.plot(color=colors[e], linestyle=styles[e], linewidth=linewidth)
         legend_items = expt_list[1:]
     else:
         for e, expt_name in enumerate(expt_list):
@@ -319,7 +323,7 @@ def make_plot(
                 da_hist = das[expt_list.index(hist_expt_name)].copy()
                 da_hist = da_hist.sel(time=slice("2014-01-01", "2014-12-31"))
                 da = xr.concat((da_hist, da), dim="time")
-            da.plot(color=colors[e])
+            da.plot(color=colors[e], linestyle=styles[e], linewidth=linewidth)
         legend_items = expt_list
 
     plt.legend(legend_items, fontsize=legendsize)
@@ -334,11 +338,13 @@ def make_plot(
         units = units.replace(" (cumulative)", "")
     plt.title(title, fontsize=titlesize)
 
+    axline_color = "#" + "c"*6
+    axline_style = "-"
     if rel_diff:
-        plt.axhline(y=1, color="k", linestyle="--")
+        plt.axhline(y=1, color=axline_color, linestyle=axline_style)
         plt.ylabel(f"Relative to {expt_list[0]}", fontsize=axlabelsize)
     elif y2y_diff or abs_diff:
-        plt.axhline(y=0, color="k", linestyle="--")
+        plt.axhline(y=0, color=axline_color, linestyle=axline_style)
         if abs_diff:
             plt.ylabel(f"Relative to {expt_list[0]} ({units})", fontsize=axlabelsize)
         else:

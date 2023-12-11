@@ -87,7 +87,7 @@ def read_fig_config(ini_file):
 
     xticks, xticklabels = get_xticks([int(x) for x in o.getlist("fig", "xticks")])
 
-    new_colors = get_colors(expt_list, o.getlist("fig", "colors"))
+    colors, styles = get_styles(expt_list)
 
     figsize = (
         o.getfloat("fig", "figsize_x"),
@@ -99,7 +99,7 @@ def read_fig_config(ini_file):
     basename_noext, _ = os.path.splitext(os.path.basename(ini_file))
     file_out = os.path.join(o["DEFAULT"]["fig_dir"], basename_noext + ".pdf")
 
-    return o, expt_list, rolling, title, xticks, xticklabels, new_colors, figsize, file_out
+    return o, expt_list, rolling, title, xticks, xticklabels, colors, styles, figsize, file_out
 
 
 def get_colors(expt_list, colors):
@@ -111,6 +111,30 @@ def get_colors(expt_list, colors):
         else:
             new_colors.append("#" + colors.pop(0))
     return new_colors
+
+def get_styles(expt_list):
+    colors = []
+    styles = []
+    for expt in expt_list:
+        # Get color
+        if "Toff" in expt:
+            colors.append("black")
+        elif "Thi" in expt:
+            colors.append("peru")
+        else:
+            raise RuntimeError(f"Unable to parse tillage setting from '{expt}'")
+
+        # Get style
+        if "Roff" in expt:
+            styles.append("-")
+        elif "Rlo" in expt:
+            styles.append("--")
+        elif "Rhi" in expt:
+            styles.append((0, (5, 5)))
+        else:
+            raise RuntimeError(f"Unable to parse tillage setting from '{expt}'")
+    return colors, styles
+
 
 
 # %% Make plot
@@ -124,7 +148,8 @@ def main(ini_file):
         title,
         xticks,
         xticklabels,
-        new_colors,
+        colors,
+        styles,
         figsize,
         file_out,
     ) = read_fig_config(ini_file)
@@ -157,7 +182,8 @@ def main(ini_file):
         legendsize=o["fig"]["legendsize"],
         xticks=xticks,
         xticklabels=xticklabels,
-        colors=new_colors,
+        colors=colors,
+        styles=styles,
         file_out=file_out,
         show=False,
     )
