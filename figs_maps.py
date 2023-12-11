@@ -53,18 +53,22 @@ def get_das(expt_list, var, do_cumsum, cropland_only, p1, pN):
             else:
                 da = da_tmp
 
+        # Process time dimension
         if do_cumsum:
-            raise RuntimeError("Code up do_cumsum")
-
-        # Get global mean(s)
-        da_p1 = da.sel(time=get_slice(p1[0], p1[1])).mean(dim="time", keep_attrs=True)
-        if pN is not None:
-            da_pN = da.sel(time=get_slice(pN[0], pN[1])).mean(
-                dim="time", keep_attrs=True
-            )
-            da = da_pN - da_p1
+            if pN is not None:
+                raise RuntimeError("Code up do_cumsum with pN")
+            da = da.copy().cumsum(dim="time", keep_attrs=True)
+            if "time" in da.dims:
+                raise RuntimeError("cumsum() kept time dimension???")
         else:
-            da = da_p1
+            da_p1 = da.sel(time=get_slice(p1[0], p1[1])).mean(dim="time", keep_attrs=True)
+            if pN is not None:
+                da_pN = da.sel(time=get_slice(pN[0], pN[1])).mean(
+                    dim="time", keep_attrs=True
+                )
+                da = da_pN - da_p1
+            else:
+                da = da_p1
 
         # Convert units
         if da.attrs["units"] == "tC/ha":
