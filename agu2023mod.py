@@ -402,12 +402,12 @@ def make_maps_plot(
             da = da - das[0]
             if rel_diff:
                 da /= das[0]
-                if e==1:
-                    da_absmax = np.abs(da.values)
-                else:
-                    da_absmax = np.abs(da_absmax, np.abs(da.values))
             elif not abs_diff:
                 raise RuntimeError("???")
+            if e==1:
+                da_absmax = np.nanmax(np.abs(da.values))
+            else:
+                da_absmax = np.nanmax((da_absmax, np.nanmax(np.abs(da.values))))
             das[e] = da
         if rel_diff:
             vrange = mm.limit_map_outliers(da_absmax)
