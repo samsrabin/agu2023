@@ -49,7 +49,7 @@ rolling = None
 # var_list = ["SOILC_HR", "NEP", "NEE", "NBP"]
 var_list = ["NBP"]
 
-agu23.make_plot(
+agu23.make_ts_plot(
     expt_list,
     ds0,
     var_list,

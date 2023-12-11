@@ -164,7 +164,7 @@ def main(ini_file):
         o.getint("fig", "yN"),
     )
 
-    agu23.make_plot(
+    agu23.make_ts_plot(
         expt_list,
         o.getboolean("fig", "abs_diff"),
         o.getboolean("fig", "rel_diff"),

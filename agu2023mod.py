@@ -238,7 +238,7 @@ def process_and_make_plot(
             da = shift_1_year_earlier(da)
             das.append(da)
 
-        make_plot(
+        make_ts_plot(
             expt_list,
             abs_diff,
             rel_diff,
@@ -251,7 +251,7 @@ def process_and_make_plot(
         )
 
 
-def make_plot(
+def make_ts_plot(
     expt_list,
     abs_diff,
     rel_diff,
