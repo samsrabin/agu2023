@@ -43,6 +43,9 @@ def get_das(expt_list, var, cropland_only, y1, yN):
             # Ignore extra years
             if da is None:
                 da = da_tmp.sel(time=slice(f"{y1}-01-01", f"{yN}-12-31"))
+                if len(da["time"].values) == 0:
+                    da = None
+                    continue
             else:
                 # Assuming files are in increasing chronological order
                 yN_prev = da["time"].values[-1].year
