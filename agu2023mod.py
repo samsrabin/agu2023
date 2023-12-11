@@ -7,6 +7,7 @@ import configparser
 import os
 import sys
 import cftime
+import mapsmod as mm
 
 
 def read_config():
@@ -275,12 +276,7 @@ def make_ts_plot(
     show=False,
 ):
     # Ensure all DataArrays have the same units
-    units = das_in[0].attrs["units"]
-    for d, da in enumerate(das_in):
-        if d == 0:
-            continue
-        if units != da.attrs["units"]:
-            raise RuntimeError(f"Units mismatch: {units} vs. {da.attrs['units']}")
+    check_consistent_units(das_in)
 
     # Modify DataArrays, if needed
     das = []
@@ -368,6 +364,67 @@ def make_ts_plot(
 
     if show:
         plt.show()
+
+def check_consistent_units(das_in):
+    units = das_in[0].attrs["units"]
+    for d, da in enumerate(das_in):
+        if d == 0:
+            continue
+        if units != da.attrs["units"]:
+            raise RuntimeError(f"Units mismatch: {units} vs. {da.attrs['units']}")
+
+
+def make_maps_plot(
+    expt_list,
+    abs_diff,
+    rel_diff,
+    cropland_only,
+    var,
+    das,
+    title=None,
+    figsize=None,
+    axlabelsize=None,
+    titlesize=None,
+    ticklabelsize=None,
+    legendsize=None,
+    file_out=None,
+    show=False,
+):
+    # Ensure all DataArrays have the same units
+    check_consistent_units(das)
+    units = das[0].attrs["units"]
+
+    if rel_diff or abs_diff:
+        raise RuntimeError("Code rel_diff/abs_diff")
+
+    Nexpt = len(expt_list)
+    if Nexpt == 4:
+        ny = 2
+        nx = 2
+    else:
+        raise RuntimeError(f"Specify subplot layout for Nexpt = {Nexpt}")
+    fig = plt.figure(figsize=figsize)
+
+    ims = []
+    for e, expt in enumerate(expt_list):
+        ax = mm.make_axis(fig, ny, nx, e+1)
+        im, _ = mm.make_map(ax, das[e], show_cbar=True, this_title=expt, units=units)
+        ims.append(im)
+
+    mm.equalize_colorbars(ims)
+
+    # Save, if doing so
+    if file_out is not None:
+        if os.path.exists(file_out) and not confirm(f"{file_out} exists. Overwrite?"):
+            print("Skipping figure save.")
+        else:
+            if not os.path.exists(file_out):
+                print(f"Saving {file_out}")
+            plt.savefig(file_out, dpi=300)
+
+    if show:
+        plt.show()
+
 
 
 def get_maps_da(dse, cropland_only, var, wtg, inds):
