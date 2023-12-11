@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 import matplotlib.collections as mplcol
 from matplotlib import cm
 import matplotlib.colors as mcolors
+import xarray as xr
 
 # Ignore these annoying warnings
 import warnings
@@ -103,7 +104,7 @@ def make_map(
             vmin=vmin,
             vmax=vmax,
         )
-        if vrange:
+        if vrange is not None:
             im.set_clim(vrange[0], vrange[1])
     ax.set_extent([-180, 180, -63, 90], crs=ccrs.PlateCarree())
 
@@ -276,3 +277,16 @@ def equalize_colorbars(ims, center0=False, this_var=None, vrange=None):
     vrange = [vmin, vmax]
 
     return extend, vrange
+
+
+def limit_map_outliers(da):
+    if isinstance(da, xr.DataArray):
+        da = da.values
+    da = np.abs(da)
+    pctle25 = np.nanpercentile(da, q=25)
+    pctle75 = np.nanpercentile(da, q=75)
+    iqr = pctle75 - pctle25
+    outlier_thresh_up = pctle75 + 1.5 * iqr
+    maxval = np.max(da[np.where(da < outlier_thresh_up)])
+    vrange = np.array([-1, 1])*maxval
+    return vrange

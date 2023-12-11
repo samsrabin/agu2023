@@ -396,7 +396,24 @@ def make_maps_plot(
     units = das[0].attrs["units"]
 
     if rel_diff or abs_diff:
-        raise RuntimeError("Code rel_diff/abs_diff")
+        da_absmax = None
+        for e in np.arange(1, len(expt_list)):
+            da = das[e].copy()
+            if rel_diff:
+                da = (da - das[0]) / das[0]
+                if e==1:
+                    da_absmax = np.abs(da.values)
+                else:
+                    da_absmax = np.abs(da_absmax, np.abs(da.values))
+            elif abs_diff:
+                raise RuntimeError("Code up abs_diff")
+            else:
+                raise RuntimeError("???")
+            das[e] = da
+        if rel_diff:
+            vrange = mm.limit_map_outliers(da_absmax)
+    else:
+        vrange = None
 
     Nexpt = len(expt_list)
     if Nexpt == 4:
@@ -409,10 +426,22 @@ def make_maps_plot(
     ims = []
     for e, expt in enumerate(expt_list):
         ax = mm.make_axis(fig, ny, nx, e + 1)
-        im, _ = mm.make_map(ax, das[e], show_cbar=True, this_title=expt, units=units)
+        if e==0 or not rel_diff:
+            this_units = units
+            this_vrange = None
+            cmap = mm.cropcal_colors["seq_other"]
+        else:
+            if rel_diff:
+                this_units = f"rel. to {expt_list[0]} ({units})"
+            elif abs_diff:
+                this_units = f"rel. to {expt_list[0]} (unitless)"
+            this_vrange = vrange
+            cmap = mm.cropcal_colors["div_yieldirr"]
+        im, _ = mm.make_map(ax, das[e], cmap=cmap, show_cbar=True, this_title=expt, units=this_units, vrange=this_vrange)
         ims.append(im)
 
-    mm.equalize_colorbars(ims)
+    if not rel_diff:  # Already equalized in limit_map_outliers()
+        mm.equalize_colorbars(ims)
 
     # Save, if doing so
     if file_out is not None:
