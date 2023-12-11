@@ -452,7 +452,7 @@ def make_maps_plot(
         else:
             if not os.path.exists(file_out):
                 print(f"Saving {file_out}")
-            plt.savefig(file_out, dpi=300)
+            plt.savefig(file_out, dpi=300, bbox_inches="tight")
 
     if show:
         plt.show()
