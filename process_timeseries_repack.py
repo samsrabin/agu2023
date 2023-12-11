@@ -26,7 +26,6 @@ expt_list = config.getlist("runs", "expt_list")
 # %% Pack pickles
 
 for expt_name in expt_list:
-
     # Get list of files
     pattern_yearrange = "[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]"
     pattern = f"*{expt_name}.clm2.h[0-9]s.{pattern_yearrange}.nc.pickle"

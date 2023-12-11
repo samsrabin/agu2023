@@ -7,10 +7,20 @@ import matplotlib.colors as mcolors
 
 # Ignore these annoying warnings
 import warnings
-warnings.filterwarnings("ignore", message="__len__ for multi-part geometries is deprecated and will be removed in Shapely 2.0. Check the length of the `geoms` property instead to get the  number of parts of a multi-part geometry.")
-warnings.filterwarnings("ignore", message="Iteration over multi-part geometries is deprecated and will be removed in Shapely 2.0. Use the `geoms` property to access the constituent parts of a multi-part geometry.")
+
+warnings.filterwarnings(
+    "ignore",
+    message="__len__ for multi-part geometries is deprecated and will be removed in Shapely 2.0. Check the length of the `geoms` property instead to get the  number of parts of a multi-part geometry.",
+)
+warnings.filterwarnings(
+    "ignore",
+    message="Iteration over multi-part geometries is deprecated and will be removed in Shapely 2.0. Use the `geoms` property to access the constituent parts of a multi-part geometry.",
+)
 warnings.filterwarnings("ignore", message="All-NaN slice encountered")
-warnings.filterwarnings("ignore", message="This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
+warnings.filterwarnings(
+    "ignore",
+    message="This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.",
+)
 
 
 # Colormaps (maps)
@@ -26,16 +36,18 @@ cropcal_colors = {
     "underlay_lightest": [0.92, 0.92, 0.92, 1],
 }
 
-fontsize = {'axis_label': 28,
-            'legend': 28,
-            'suptitle': 36,
-            'title': 30,
-            'tick_label': 24}
+fontsize = {
+    "axis_label": 28,
+    "legend": 28,
+    "suptitle": 36,
+    "title": 30,
+    "tick_label": 24,
+}
 
-fontsize['titles'] = 18
-fontsize['axislabels'] = 14
-fontsize['ticklabels'] = 14
-fontsize['suptitle'] = 22
+fontsize["titles"] = 18
+fontsize["axislabels"] = 14
+fontsize["ticklabels"] = 14
+fontsize["suptitle"] = 22
 
 
 def make_map(
@@ -67,12 +79,19 @@ def make_map(
         if underlay_color is None:
             underlay_color = cropcal_colors["underlay"]
         underlay_cmap = mcolors.ListedColormap(np.array([underlay_color, [1, 1, 1, 1]]))
-        ax.pcolormesh(underlay.lon.values, underlay.lat.values, underlay, cmap=underlay_cmap)
+        ax.pcolormesh(
+            underlay.lon.values, underlay.lat.values, underlay, cmap=underlay_cmap
+        )
 
     if bounds is not None:
         norm = mcolors.BoundaryNorm(bounds, cmap.N, extend=extend_bounds)
         im = ax.pcolormesh(
-            this_map.lon.values, this_map.lat.values, this_map, shading="auto", norm=norm, cmap=cmap
+            this_map.lon.values,
+            this_map.lat.values,
+            this_map,
+            shading="auto",
+            norm=norm,
+            cmap=cmap,
         )
     else:
         im = ax.pcolormesh(
@@ -90,7 +109,11 @@ def make_map(
 
     if subplot_label is not None:
         plt.text(
-            0, 0.95, f"({subplot_label})", transform=ax.transAxes, fontsize=fontsize["axislabels"]
+            0,
+            0.95,
+            f"({subplot_label})",
+            transform=ax.transAxes,
+            fontsize=fontsize["axislabels"],
         )
 
     # # Country borders
@@ -170,12 +193,26 @@ def set_ticks(lonlat_bin_width, fontsize, x_or_y):
     else:
         plt.yticks(ticks, labels=ticklabels, fontsize=fontsize["ticklabels"])
 
+
 def deal_with_ticklabels(cbar, cbar_max, ticklabels, ticklocations, units, im):
     if ticklocations is not None:
         cbar.set_ticks(ticklocations)
         if units is not None and units.lower() == "month":
             cbar.set_ticklabels(
-                ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+                [
+                    "Jan",
+                    "Feb",
+                    "Mar",
+                    "Apr",
+                    "May",
+                    "Jun",
+                    "Jul",
+                    "Aug",
+                    "Sep",
+                    "Oct",
+                    "Nov",
+                    "Dec",
+                ]
             )
             units == "Month"
         elif ticklabels is not None:

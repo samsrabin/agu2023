@@ -99,7 +99,18 @@ def read_fig_config(ini_file):
     basename_noext, _ = os.path.splitext(os.path.basename(ini_file))
     file_out = os.path.join(o["DEFAULT"]["fig_dir"], basename_noext + ".pdf")
 
-    return o, expt_list, rolling, title, xticks, xticklabels, colors, styles, figsize, file_out
+    return (
+        o,
+        expt_list,
+        rolling,
+        title,
+        xticks,
+        xticklabels,
+        colors,
+        styles,
+        figsize,
+        file_out,
+    )
 
 
 def get_colors(expt_list, colors):
@@ -111,6 +122,7 @@ def get_colors(expt_list, colors):
         else:
             new_colors.append("#" + colors.pop(0))
     return new_colors
+
 
 def get_styles(expt_list):
     colors = []
@@ -134,7 +146,6 @@ def get_styles(expt_list):
         else:
             raise RuntimeError(f"Unable to parse tillage setting from '{expt}'")
     return colors, styles
-
 
 
 # %% Make plot

@@ -18,8 +18,10 @@ import agu2023mod as agu23
 
 # %% Define
 
+
 def get_slice(y1, yN):
     return slice(f"{y1}-01-01", f"{yN}-12-31")
+
 
 def get_das(expt_list, var, do_cumsum, cropland_only, p1, pN):
     if cropland_only:
@@ -57,7 +59,9 @@ def get_das(expt_list, var, do_cumsum, cropland_only, p1, pN):
         # Get global mean(s)
         da_p1 = da.sel(time=get_slice(p1[0], p1[1])).mean(dim="time", keep_attrs=True)
         if pN is not None:
-            da_pN = da.sel(time=get_slice(pN[0], pN[1])).mean(dim="time", keep_attrs=True)
+            da_pN = da.sel(time=get_slice(pN[0], pN[1])).mean(
+                dim="time", keep_attrs=True
+            )
             da = da_pN - da_p1
         else:
             da = da_p1
@@ -118,7 +122,6 @@ def read_fig_config(ini_file):
         pN = None
 
     return o, expt_list, title, figsize, file_out, p1, pN
-
 
 
 # %% Make plot

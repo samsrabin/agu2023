@@ -29,7 +29,6 @@ def get_ts_dict(var_list, ds):
     ts_dict = {}
     for var in var_list:
         for cropland_only in [False, True]:
-
             # Get name of output timeseries DataArray
             if cropland_only:
                 var_ts = f"{var}_croponly"

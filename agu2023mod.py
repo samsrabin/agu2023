@@ -77,10 +77,12 @@ def get_only_cropland2(dse, wtg):
     dse[wtg] = wtg_da
     return dse
 
+
 def grid_da(ds, da):
     ds["tmp"] = da
     da = utils.grid_one_variable(ds, "tmp")
     return da
+
 
 # Calculate total value (instead of per-area)
 def get_total_value(dse, da_in, cropland_only):
@@ -211,7 +213,6 @@ def get_weighted(dse, cropland_only, var, wtg, inds):
 def process_and_make_plot(
     expt_list, ds, var_list, abs_diff, rel_diff, y2y_diff, cropland_only, rolling=None
 ):
-
     if isinstance(var_list, str):
         var_list = [var_list]
 
@@ -221,7 +222,6 @@ def process_and_make_plot(
         raise RuntimeError("rel_diff and abs_diff are mutually exclusive")
 
     for _, var in enumerate(var_list):
-
         # Process modifiers
         do_cumsum = False
         while "." in var:
@@ -334,7 +334,7 @@ def make_ts_plot(
         units = units.replace(" (cumulative)", "")
     plt.title(title, fontsize=titlesize)
 
-    axline_color = "#" + "c"*6
+    axline_color = "#" + "c" * 6
     axline_style = "-"
     if rel_diff:
         plt.axhline(y=1, color=axline_color, linestyle=axline_style)
@@ -364,6 +364,7 @@ def make_ts_plot(
 
     if show:
         plt.show()
+
 
 def check_consistent_units(das_in):
     units = das_in[0].attrs["units"]
@@ -407,7 +408,7 @@ def make_maps_plot(
 
     ims = []
     for e, expt in enumerate(expt_list):
-        ax = mm.make_axis(fig, ny, nx, e+1)
+        ax = mm.make_axis(fig, ny, nx, e + 1)
         im, _ = mm.make_map(ax, das[e], show_cbar=True, this_title=expt, units=units)
         ims.append(im)
 
@@ -426,7 +427,6 @@ def make_maps_plot(
         plt.show()
 
 
-
 def get_maps_da(dse, cropland_only, var, wtg, inds):
     if wtg is not None:
         dse, da_perarea = get_weighted(dse, cropland_only, var, wtg, inds)
@@ -438,9 +438,9 @@ def get_maps_da(dse, cropland_only, var, wtg, inds):
     da_perarea = grid_da(dse, da_perarea)
 
     # Calculate total value (instead of per-area)
-    units = da_perarea.attrs['units']
+    units = da_perarea.attrs["units"]
     da = get_total_value(dse, da_perarea, cropland_only)
-    if units != da_perarea.attrs['units']:
+    if units != da_perarea.attrs["units"]:
         raise RuntimeError("???")
 
     # Convert units
@@ -507,12 +507,13 @@ def get_hist_expt_name(expt_name):
 
     return hist_expt_name
 
+
 def confirm(message):
-  while True:
-    answer = input(message + " (y/N) ")
-    answer = answer.lower()
-    if answer == "y":
-      return True
-    elif answer == "n" or answer is "":
-      return False
-    print("Please answer with 'y' for yes or 'n' for no.")
+    while True:
+        answer = input(message + " (y/N) ")
+        answer = answer.lower()
+        if answer == "y":
+            return True
+        elif answer == "n" or answer is "":
+            return False
+        print("Please answer with 'y' for yes or 'n' for no.")
