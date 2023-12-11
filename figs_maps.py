@@ -71,6 +71,7 @@ def get_das(expt_list, var, do_cumsum, cropland_only, p1, pN):
             grain_cfrac = 0.45
             da /= grain_cfrac
             da.attrs["units"] = "tDM/ha"
+            da = da.where(da > 0)
 
         das.append(da)
 
