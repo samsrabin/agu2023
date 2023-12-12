@@ -411,11 +411,6 @@ def make_maps_plot(
             das[e] = da
         if rel_diff:
             vrange = mm.limit_map_outliers(da_absmax)
-        elif abs_diff and np.nanmax(da_absmax) < 1e-3 and units == "PgC":
-            # PgC units in this figure are too hard to read
-            units = "TgC"
-            for e in np.arange(1, len(expt_list)):
-                das[e] = das[e] * 1e3
     else:
         vrange = None
 

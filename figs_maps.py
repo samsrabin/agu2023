@@ -83,6 +83,9 @@ def get_das(expt_list, var, do_cumsum, cropland_only, p1, pN):
             da /= grain_cfrac
             da.attrs["units"] = "tDM/ha"
             da = da.where(da > 0)
+        elif var == "TOTSOMC" and da.attrs["units"] == "PgC":
+            da *= 1e3
+            da.attrs["units"] = "TgC"
 
         das.append(da)
 
