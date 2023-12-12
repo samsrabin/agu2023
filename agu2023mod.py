@@ -338,7 +338,7 @@ def make_ts_plot(
     axline_style = "-"
     if rel_diff:
         plt.axhline(y=1, color=axline_color, linestyle=axline_style)
-        plt.ylabel(f"Relative to {expt_list[0]}", fontsize=axlabelsize)
+        plt.ylabel(f"Relative to {expt_list[0]} (unitless)", fontsize=axlabelsize)
     elif y2y_diff or abs_diff:
         plt.axhline(y=0, color=axline_color, linestyle=axline_style)
         if abs_diff:
