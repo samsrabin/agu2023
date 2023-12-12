@@ -61,9 +61,15 @@ def get_das(expt_list, var, do_cumsum, cropland_only, p1, pN):
             if "time" in da.dims:
                 raise RuntimeError("cumsum() kept time dimension???")
         else:
-            da_p1 = da.sel(time=get_slice(p1[0], p1[1])).mean(dim="time", keep_attrs=True)
+            da_p1 = da.sel(time=get_slice(p1[0], p1[1]))
+            if len(da_p1["time"]) == 0:
+                raise RuntimeError(f"Requested time slice {p1[0]}-{p1[1]} has no overlap with DataArray time axis {da['time'].values[0].year}-{da['time'].values[-1].year}")
+            da_p1 = da_p1.mean(dim="time", keep_attrs=True)
             if pN is not None:
-                da_pN = da.sel(time=get_slice(pN[0], pN[1])).mean(
+                da_pN = da.sel(time=get_slice(pN[0], pN[1]))
+                if len(da_pN["time"]) == 0:
+                    raise RuntimeError(f"Requested time slice {pN[0]}-{pN[1]} has no overlap with DataArray time axis {da['time'].values[0].year}-{da['time'].values[-1].year}")
+                da_pN = da_pN.mean(
                     dim="time", keep_attrs=True
                 )
                 da = da_pN - da_p1
