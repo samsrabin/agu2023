@@ -437,6 +437,8 @@ def make_maps_plot(
                 this_units = f"rel. to {expt_list[0]} (unitless)"
                 this_vrange = vrange
             cmap = mm.cropcal_colors["div_yieldirr"]
+        if e==0 and (rel_diff or abs_diff) and np.nanmin(das[e]) < 0:
+            cmap = "RdBu"
         im, _ = mm.make_map(ax, das[e], cmap=cmap, show_cbar=True, this_title=expt, units=this_units, vrange=this_vrange)
         ims.append(im)
 
