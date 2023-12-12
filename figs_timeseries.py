@@ -75,7 +75,11 @@ def read_fig_config(ini_file):
         converters={"list": lambda x: [i.strip() for i in x.split(",")]},
         allow_no_value=True,
     )
-    o.read(os.path.join(scriptsDir, ini_file))
+    ini_file_path = os.path.join(scriptsDir, ini_file)
+    ini_file_path = os.path.realpath(ini_file_path)
+    if not os.path.exists(ini_file_path):
+        raise FileNotFoundError(f"Config file: '{ini_file_path}'")
+    o.read(ini_file_path)
     expt_list = o.getlist("DEFAULT", "expt_list")
     fig_keys = [k for k in o["fig"].keys()]
     if "rolling" not in fig_keys:
