@@ -126,8 +126,8 @@ def read_fig_config(ini_file):
     file_out = os.path.join(o["DEFAULT"]["fig_dir"], basename_noext + ".png")
 
     p1 = get_period_mean(o["fig"]["p1"])
-    if "pN" in fig_keys:
-        pN = get_period_mean(o["fig"]["pN"])
+    if "pn" in fig_keys:
+        pN = get_period_mean(o["fig"]["pn"])
     else:
         pN = None
 
