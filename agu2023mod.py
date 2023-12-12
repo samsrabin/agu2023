@@ -302,25 +302,36 @@ def make_ts_plot(
         styles = "-" * len(expt_list)
     linewidth = 2
 
-    plt.figure(figsize=figsize)
     if rel_diff or abs_diff:
         for e in np.arange(1, len(das)):
             if rel_diff:
                 da = das[e] / das[0]
             elif abs_diff:
                 da = das[e] - das[0]
-            da.plot(color=colors[e], linestyle=styles[e], linewidth=linewidth)
-        legend_items = expt_list[1:]
-    else:
-        for e, expt_name in enumerate(expt_list):
-            da = das[e].copy()
-            if "from" in expt_name:
-                hist_expt_name = get_hist_expt_name(expt_name)
-                da_hist = das[expt_list.index(hist_expt_name)].copy()
-                da_hist = da_hist.sel(time=slice("2014-01-01", "2014-12-31"))
-                da = xr.concat((da_hist, da), dim="time")
-            da.plot(color=colors[e], linestyle=styles[e], linewidth=linewidth)
-        legend_items = expt_list
+            das[e] = da
+        if rel_diff:
+            das[0] = das[0] / das[0]
+        else:
+            das[0] = das[0] - das[0]
+
+    plt.figure(figsize=figsize)
+
+    axline_color = "#" + "d" * 6
+    axline_style = "-"
+    if rel_diff:
+        plt.axhline(y=1, color=axline_color, linestyle=axline_style, label="_nolegend_")
+    elif y2y_diff or abs_diff:
+        plt.axhline(y=0, color=axline_color, linestyle=axline_style, label="_nolegend_")
+
+    for e, expt_name in enumerate(expt_list):
+        da = das[e].copy()
+        if "from" in expt_name:
+            hist_expt_name = get_hist_expt_name(expt_name)
+            da_hist = das[expt_list.index(hist_expt_name)].copy()
+            da_hist = da_hist.sel(time=slice("2014-01-01", "2014-12-31"))
+            da = xr.concat((da_hist, da), dim="time")
+        da.plot(color=colors[e], linestyle=styles[e], linewidth=linewidth)
+    legend_items = expt_list
 
     plt.legend(legend_items, fontsize=legendsize)
 
@@ -334,13 +345,9 @@ def make_ts_plot(
         units = units.replace(" (cumulative)", "")
     plt.title(title, fontsize=titlesize)
 
-    axline_color = "#" + "c" * 6
-    axline_style = "-"
     if rel_diff:
-        plt.axhline(y=1, color=axline_color, linestyle=axline_style)
         plt.ylabel(f"Relative to {expt_list[0]} (unitless)", fontsize=axlabelsize)
     elif y2y_diff or abs_diff:
-        plt.axhline(y=0, color=axline_color, linestyle=axline_style)
         if abs_diff:
             plt.ylabel(f"Relative to {expt_list[0]} ({units})", fontsize=axlabelsize)
         else:
