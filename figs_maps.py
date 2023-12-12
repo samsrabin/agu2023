@@ -67,6 +67,7 @@ def get_das(expt_list, var, do_cumsum, cropland_only, p1, pN):
                     dim="time", keep_attrs=True
                 )
                 da = da_pN - da_p1
+                da.attrs["units"] = da_p1.attrs["units"]
             else:
                 da = da_p1
 
