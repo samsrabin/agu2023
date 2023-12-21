@@ -91,7 +91,7 @@ def get_total_value(dse, da_in, cropland_only):
         new_units = old_units.replace("/m^2", "")
     else:
         new_units = old_units + " m^2"
-    area_da = dse["area"] * 1e6
+    area_da = dse["area"] * dse["landfrac"] * 1e6
     if cropland_only:
         area_da = area_da * dse["frac_crop"]
     da = da_in * area_da
