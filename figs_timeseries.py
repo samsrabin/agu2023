@@ -141,7 +141,8 @@ def get_styles(expt_list):
         elif "Thi" in expt:
             colors.append("peru")
         else:
-            raise RuntimeError(f"Unable to parse tillage setting from '{expt}'")
+            print(f"Unable to parse tillage setting from '{expt}'; using default colors and styles.")
+            return None, None
 
         # Get style
         if "Roff" in expt:
@@ -151,7 +152,8 @@ def get_styles(expt_list):
         elif "Rhi" in expt:
             styles.append((0, (5, 5)))
         else:
-            raise RuntimeError(f"Unable to parse tillage setting from '{expt}'")
+            print(f"Unable to parse tillage setting from '{expt}'; using default colors and styles.")
+            return None, None
     return colors, styles
 
 
